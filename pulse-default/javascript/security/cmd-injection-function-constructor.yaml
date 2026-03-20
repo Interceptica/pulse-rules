@@ -1,0 +1,28 @@
+id: pulse.javascript.security.cmd-injection-function-constructor
+language: javascript
+severity: error
+message: |
+  Code injection via Function constructor.
+  The Function constructor compiles and executes arbitrary code, similar to eval().
+  Passing user-controlled data allows arbitrary JavaScript code execution.
+  Avoid the Function constructor. Use safer alternatives like JSON.parse() or predefined functions.
+rule:
+  pattern: new Function($INPUT)
+metadata:
+  cwe: ["CWE-95"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new Function(userCode)
+    - |
+      new Function("return " + expr)
+    - |
+      const fn = new Function(`return ${input}`)
+  negative:
+    - |
+      new Function("a", "b", "return a + b")

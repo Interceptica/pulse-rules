@@ -1,0 +1,33 @@
+id: pulse.javascript.security.path-traversal-writefile
+language: javascript
+severity: error
+message: |
+  Path traversal via fs.writeFile().
+  Passing user-controlled data as a file path to fs.writeFile() allows attackers to write
+  arbitrary files on the server using sequences like "../".
+  Validate and sanitize the path using path.resolve() and verify it stays within the intended directory.
+rule:
+  any:
+    - pattern: fs.writeFile($PATH, $$$ARGS)
+    - pattern: fs.writeFileSync($PATH, $$$ARGS)
+    - pattern: fs.promises.writeFile($PATH, $$$ARGS)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      fs.writeFile(req.body.path, content, callback)
+    - |
+      fs.writeFileSync(userPath, data)
+    - |
+      fs.promises.writeFile(filePath, content)
+  negative:
+    - |
+      fs.writeFile("/tmp/output.json", data, callback)
+    - |
+      fs.writeFileSync(path.join(__dirname, "output.json"), data)

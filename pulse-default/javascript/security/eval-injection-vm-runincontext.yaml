@@ -1,0 +1,36 @@
+id: pulse.javascript.security.eval-injection-vm-runincontext
+language: javascript
+severity: error
+message: |
+  Code injection via Node.js vm module.
+  Passing user-controlled data to vm.runInNewContext() or vm.runInThisContext() allows
+  arbitrary code execution. The vm module is not a security sandbox.
+  Avoid executing user-controlled code. If sandboxing is required, use isolated-vm or a
+  separate process with restricted permissions.
+rule:
+  any:
+    - pattern: vm.runInNewContext($INPUT)
+    - pattern: vm.runInNewContext($INPUT, $$$ARGS)
+    - pattern: vm.runInThisContext($INPUT)
+    - pattern: vm.runInThisContext($INPUT, $$$ARGS)
+    - pattern: vm.runInContext($INPUT, $$$ARGS)
+metadata:
+  cwe: ["CWE-95"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: HIGH
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      vm.runInNewContext(userCode)
+    - |
+      vm.runInThisContext(req.body.expression)
+    - |
+      vm.runInContext(userInput, context)
+  negative:
+    - |
+      vm.runInNewContext("1 + 2")
+    - |
+      vm.runInNewContext("result = a + b", { a: 1, b: 2 })

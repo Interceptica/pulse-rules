@@ -1,0 +1,28 @@
+id: pulse.javascript.security.xss-handlebars-safestring
+language: javascript
+severity: error
+message: |
+  Cross-site scripting (XSS) via Handlebars.SafeString().
+  Wrapping user-controlled data in Handlebars.SafeString() marks it as safe HTML, bypassing
+  automatic escaping in Handlebars templates.
+  Sanitize HTML with a library like DOMPurify before creating a SafeString.
+rule:
+  pattern: new Handlebars.SafeString($INPUT)
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new Handlebars.SafeString(userInput)
+    - |
+      new Handlebars.SafeString("<b>" + data + "</b>")
+  negative:
+    - |
+      new Handlebars.SafeString(DOMPurify.sanitize(userInput))
+    - |
+      Handlebars.escapeExpression(userInput)

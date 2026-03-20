@@ -1,0 +1,34 @@
+id: pulse.javascript.security.cmd-injection-exec
+language: javascript
+severity: error
+message: |
+  Command injection via exec().
+  Passing user-controlled data to child_process.exec() spawns a shell and allows arbitrary
+  command execution through shell metacharacters.
+  Use child_process.execFile() or child_process.spawn() with an argument array instead.
+rule:
+  any:
+    - pattern: exec($CMD)
+    - pattern: child_process.exec($CMD)
+    - pattern: exec($CMD, $$$OPTS)
+    - pattern: child_process.exec($CMD, $$$OPTS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      exec("ls " + userInput)
+    - |
+      child_process.exec(`rm -rf ${path}`)
+    - |
+      exec(cmd, { encoding: "utf8" })
+  negative:
+    - |
+      execFile("/usr/bin/ls", [userInput])
+    - |
+      spawn("ls", ["-la"])

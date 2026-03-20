@@ -1,0 +1,24 @@
+id: pulse.javascript.security.express-session-insecure
+language: javascript
+severity: warning
+message: |
+  Express session configured without secure cookie flag.
+  Session cookies without the secure flag can be transmitted over unencrypted HTTP connections,
+  allowing session hijacking via network sniffing.
+  Set cookie.secure to true in production: session({ cookie: { secure: true } })
+rule:
+  pattern: "session({ cookie: { secure: false } })"
+metadata:
+  cwe: ["CWE-614"]
+  owasp: ["A05:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      app.use(session({ cookie: { secure: false } }))
+  negative:
+    - |
+      app.use(session({ cookie: { secure: true } }))

@@ -1,0 +1,29 @@
+id: pulse.javascript.security.prototype-pollution-object-assign
+language: javascript
+severity: error
+message: |
+  Potential prototype pollution via Object.assign().
+  Passing user-controlled data directly to Object.assign() can allow shallow property injection.
+  While Object.assign() only copies own enumerable properties (not __proto__), it can still
+  overwrite sensitive properties on the target object.
+  Validate and sanitize input properties before using Object.assign().
+rule:
+  pattern: Object.assign($TARGET, $INPUT)
+metadata:
+  cwe: ["CWE-1321"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Object.assign(config, req.body)
+    - |
+      Object.assign(user, userInput)
+  negative:
+    - |
+      Object.assign({}, defaults)
+    - |
+      Object.assign(target, { name: "safe" })

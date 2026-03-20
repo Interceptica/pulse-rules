@@ -1,0 +1,28 @@
+id: pulse.javascript.security.xss-react-dangerously
+language: javascript
+severity: error
+message: |
+  Cross-site scripting (XSS) via dangerouslySetInnerHTML in React.
+  Using dangerouslySetInnerHTML renders raw HTML and bypasses React's built-in XSS protection.
+  Sanitize HTML with a library like DOMPurify before passing it to dangerouslySetInnerHTML,
+  or use regular JSX expressions which are automatically escaped.
+rule:
+  pattern: dangerouslySetInnerHTML
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      <div dangerouslySetInnerHTML={{ __html: userInput }} />
+    - |
+      <span dangerouslySetInnerHTML={{ __html: data }}></span>
+  negative:
+    - |
+      <div>{userInput}</div>
+    - |
+      <span>{data}</span>

@@ -1,0 +1,33 @@
+id: pulse.javascript.security.sql-injection-knex-raw
+language: javascript
+severity: error
+message: |
+  SQL injection via Knex raw query.
+  Passing user-controlled data to knex.raw() with string interpolation or concatenation allows
+  arbitrary SQL execution.
+  Use Knex parameterized bindings instead: knex.raw("SELECT * FROM users WHERE id = ?", [userId])
+rule:
+  pattern: $KNEX.raw($INPUT)
+  has:
+    any:
+      - kind: template_string
+      - kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      knex.raw(`SELECT * FROM users WHERE id = ${userId}`)
+    - |
+      knex.raw("SELECT * FROM users WHERE id = " + userId)
+  negative:
+    - |
+      knex.raw("SELECT * FROM users WHERE id = ?", [userId])
+    - |
+      knex.raw("SELECT * FROM users")

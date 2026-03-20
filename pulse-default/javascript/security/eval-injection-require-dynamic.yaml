@@ -1,0 +1,36 @@
+id: pulse.javascript.security.eval-injection-require-dynamic
+language: javascript
+severity: error
+message: |
+  Code injection via dynamic require().
+  Passing user-controlled data to require() allows loading arbitrary modules, potentially
+  enabling code execution or access to sensitive files.
+  Use a whitelist of allowed module names and validate input against it.
+rule:
+  pattern: require($INPUT)
+  not:
+    has:
+      kind: string
+      stopBy: end
+metadata:
+  cwe: ["CWE-95"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      require(moduleName)
+    - |
+      require(req.body.plugin)
+    - |
+      require(`./plugins/${name}`)
+  negative:
+    - |
+      require("express")
+    - |
+      require("./config")
+    - |
+      require("path")

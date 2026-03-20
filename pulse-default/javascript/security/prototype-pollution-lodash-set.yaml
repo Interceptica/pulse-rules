@@ -1,0 +1,30 @@
+id: pulse.javascript.security.prototype-pollution-lodash-set
+language: javascript
+severity: error
+message: |
+  Prototype pollution via lodash _.set().
+  Passing a user-controlled path to _.set() allows attackers to modify Object.prototype
+  using paths like "__proto__.isAdmin" or "constructor.prototype.isAdmin".
+  Validate the path against a list of allowed property names before calling _.set().
+rule:
+  any:
+    - pattern: _.set($OBJ, $PATH, $VAL)
+    - pattern: lodash.set($OBJ, $PATH, $VAL)
+metadata:
+  cwe: ["CWE-1321"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      _.set(config, req.body.path, req.body.value)
+    - |
+      lodash.set(obj, userPath, userValue)
+  negative:
+    - |
+      _.set(config, "database.host", "localhost")
+    - |
+      lodash.set(obj, "name", value)

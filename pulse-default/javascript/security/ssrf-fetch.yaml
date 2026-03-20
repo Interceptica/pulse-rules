@@ -1,0 +1,32 @@
+id: pulse.javascript.security.ssrf-fetch
+language: javascript
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via fetch().
+  Passing user-controlled URLs to fetch() allows attackers to make the server send requests
+  to internal services, cloud metadata endpoints, or other unintended destinations.
+  Validate URLs against an allowlist of permitted hosts and schemes before making requests.
+rule:
+  any:
+    - pattern: fetch($URL)
+    - pattern: fetch($URL, $$$OPTS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      fetch(userUrl)
+    - |
+      fetch(req.query.url)
+    - |
+      fetch(`http://${host}/api/data`)
+  negative:
+    - |
+      fetch("https://api.example.com/data")
+    - |
+      fetch("https://api.example.com/submit", { method: "POST" })

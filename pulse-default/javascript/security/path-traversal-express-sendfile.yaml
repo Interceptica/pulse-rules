@@ -1,0 +1,28 @@
+id: pulse.javascript.security.path-traversal-express-sendfile
+language: javascript
+severity: error
+message: |
+  Path traversal via Express res.sendFile().
+  Passing user-controlled data to res.sendFile() allows attackers to access arbitrary files
+  on the server using sequences like "../".
+  Use the root option to restrict file access: res.sendFile(filename, { root: safeDir })
+rule:
+  pattern: $RES.sendFile($PATH)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      res.sendFile(req.params.file)
+    - |
+      res.sendFile(userPath)
+  negative:
+    - |
+      res.sendFile(filename, { root: path.join(__dirname, "public") })
+    - |
+      res.sendFile("/absolute/safe/path/file.txt")

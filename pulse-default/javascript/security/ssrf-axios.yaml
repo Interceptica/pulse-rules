@@ -1,0 +1,39 @@
+id: pulse.javascript.security.ssrf-axios
+language: javascript
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via axios.
+  Passing user-controlled URLs to axios allows attackers to make the server send requests
+  to internal services, cloud metadata endpoints, or other unintended destinations.
+  Validate URLs against an allowlist of permitted hosts and schemes before making requests.
+rule:
+  any:
+    - pattern: axios.get($URL)
+    - pattern: axios.get($URL, $$$OPTS)
+    - pattern: axios.post($URL)
+    - pattern: axios.post($URL, $$$ARGS)
+    - pattern: axios.put($URL, $$$ARGS)
+    - pattern: axios.delete($URL)
+    - pattern: axios.delete($URL, $$$OPTS)
+    - pattern: axios($URL)
+    - pattern: axios($URL, $$$OPTS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      axios.get(userUrl)
+    - |
+      axios.post(req.body.url, data)
+    - |
+      axios(`http://${host}/api`)
+  negative:
+    - |
+      axios.get("https://api.example.com/data")
+    - |
+      axios.post("https://api.example.com/submit", payload)

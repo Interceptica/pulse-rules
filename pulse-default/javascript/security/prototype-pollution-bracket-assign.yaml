@@ -1,0 +1,28 @@
+id: pulse.javascript.security.prototype-pollution-bracket-assign
+language: javascript
+severity: error
+message: |
+  Prototype pollution via nested bracket notation assignment.
+  Assigning values using user-controlled keys with nested bracket notation allows attackers
+  to modify Object.prototype via __proto__ or constructor keys.
+  Validate keys against a list of safe property names and reject __proto__, constructor, and prototype.
+rule:
+  pattern: $OBJ[$KEY][$NESTED] = $VAL
+metadata:
+  cwe: ["CWE-1321"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      obj[key][nested] = value
+    - |
+      config[req.body.key][req.body.prop] = req.body.value
+  negative:
+    - |
+      obj.knownKey.knownProp = value
+    - |
+      array[0][1] = value

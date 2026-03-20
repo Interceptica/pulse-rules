@@ -1,0 +1,32 @@
+id: pulse.javascript.security.path-traversal-readfile
+language: javascript
+severity: error
+message: |
+  Path traversal via fs.readFile().
+  Passing user-controlled data as a file path to fs.readFile() allows attackers to read
+  arbitrary files on the server using sequences like "../".
+  Validate and sanitize the path using path.resolve() and verify it stays within the intended directory.
+rule:
+  any:
+    - pattern: fs.readFile($PATH, $$$ARGS)
+    - pattern: fs.promises.readFile($PATH, $$$ARGS)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      fs.readFile(req.query.file, "utf8", callback)
+    - |
+      fs.readFile(userPath, (err, data) => {})
+    - |
+      fs.promises.readFile(filePath)
+  negative:
+    - |
+      fs.readFile("/etc/config.json", "utf8", callback)
+    - |
+      fs.readFile(path.join(__dirname, "config.json"), callback)

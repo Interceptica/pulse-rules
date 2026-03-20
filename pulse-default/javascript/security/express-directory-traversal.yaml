@@ -1,0 +1,32 @@
+id: pulse.javascript.security.express-directory-traversal
+language: javascript
+severity: error
+message: |
+  Directory traversal via express.static() with user-controlled path.
+  Passing user-controlled data as the root directory to express.static() allows attackers
+  to serve arbitrary files from the server.
+  Use a fixed directory path for express.static() and never derive it from user input.
+rule:
+  pattern: express.static($PATH)
+  not:
+    has:
+      kind: string
+      stopBy: end
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      app.use(express.static(userDir))
+    - |
+      app.use(express.static(req.query.dir))
+  negative:
+    - |
+      app.use(express.static("public"))
+    - |
+      app.use(express.static(path.join(__dirname, "public")))

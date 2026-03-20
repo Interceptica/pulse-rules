@@ -1,0 +1,28 @@
+id: pulse.javascript.security.cmd-injection-eval
+language: javascript
+severity: error
+message: |
+  Code injection via eval().
+  Passing user-controlled data to eval() allows arbitrary JavaScript code execution.
+  Avoid eval() entirely. Use JSON.parse() for data parsing, or restructure the code
+  to avoid dynamic evaluation.
+rule:
+  pattern: eval($INPUT)
+metadata:
+  cwe: ["CWE-95"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      eval(userInput)
+    - |
+      eval("return " + expression)
+    - |
+      eval(`config.${key}`)
+  negative:
+    - |
+      JSON.parse(userInput)

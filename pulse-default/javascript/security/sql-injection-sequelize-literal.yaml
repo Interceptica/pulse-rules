@@ -1,0 +1,26 @@
+id: pulse.javascript.security.sql-injection-sequelize-literal
+language: javascript
+severity: error
+message: |
+  SQL injection via Sequelize.literal().
+  Passing user-controlled data to Sequelize.literal() injects raw SQL into the query without
+  parameterization or escaping.
+  Use Sequelize parameterized replacements or bind parameters instead.
+rule:
+  pattern: Sequelize.literal($INPUT)
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Sequelize.literal(`COUNT(${userInput})`)
+    - |
+      Sequelize.literal("SUM(" + column + ")")
+  negative:
+    - |
+      Sequelize.literal("COUNT(*)")

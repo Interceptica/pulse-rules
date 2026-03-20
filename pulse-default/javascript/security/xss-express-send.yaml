@@ -1,0 +1,28 @@
+id: pulse.javascript.security.xss-express-send
+language: javascript
+severity: error
+message: |
+  Cross-site scripting (XSS) via Express res.send().
+  Sending user-controlled data directly in an HTTP response without escaping may allow
+  script injection if the Content-Type is HTML.
+  Set an explicit Content-Type header (e.g., application/json) or escape HTML entities before sending.
+rule:
+  pattern: $RES.send($INPUT)
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      res.send(req.query.name)
+    - |
+      res.send("<h1>" + userInput + "</h1>")
+  negative:
+    - |
+      res.json({ name: userInput })
+    - |
+      res.send("OK")

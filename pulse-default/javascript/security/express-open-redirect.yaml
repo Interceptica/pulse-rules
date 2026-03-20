@@ -1,0 +1,30 @@
+id: pulse.javascript.security.express-open-redirect
+language: javascript
+severity: error
+message: |
+  Open redirect via Express res.redirect().
+  Passing user-controlled data to res.redirect() allows attackers to redirect users to
+  malicious websites, enabling phishing attacks.
+  Validate redirect URLs against an allowlist of permitted destinations, or use relative paths only.
+rule:
+  pattern: $RES.redirect($INPUT)
+metadata:
+  cwe: ["CWE-601"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      res.redirect(req.query.url)
+    - |
+      res.redirect(req.body.returnTo)
+    - |
+      res.redirect(userUrl)
+  negative:
+    - |
+      res.redirect("/dashboard")
+    - |
+      res.redirect("/login")
