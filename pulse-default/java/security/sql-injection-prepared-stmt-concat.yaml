@@ -1,0 +1,30 @@
+id: pulse.java.security.sql-injection-prepared-stmt-concat
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in prepareStatement() call.
+  Even though PreparedStatement is used, concatenating input into the SQL string
+  bypasses its protection. Use parameter placeholders (?) instead.
+rule:
+  pattern: $CONN.prepareStatement($ARG)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      conn.prepareStatement("SELECT * FROM users WHERE id = " + userId);
+    - |
+      connection.prepareStatement("SELECT " + column + " FROM users");
+  negative:
+    - |
+      conn.prepareStatement("SELECT * FROM users WHERE id = ?");
+    - |
+      conn.prepareStatement("SELECT * FROM users");

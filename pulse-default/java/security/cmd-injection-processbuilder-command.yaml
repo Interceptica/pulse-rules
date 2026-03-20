@@ -1,0 +1,25 @@
+id: pulse.java.security.cmd-injection-processbuilder-command
+language: java
+severity: error
+message: |
+  Command injection via ProcessBuilder.command().
+  Passing user-controlled input to ProcessBuilder.command() allows arbitrary command execution.
+  Validate and sanitize all inputs. Use a whitelist of allowed commands.
+rule:
+  pattern: $PB.command($$$INPUT)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      pb.command("bash", "-c", userInput);
+    - |
+      processBuilder.command(commandList);
+  negative:
+    - |
+      pb.command("echo", "hello");

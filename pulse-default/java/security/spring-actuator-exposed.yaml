@@ -1,0 +1,25 @@
+id: pulse.java.security.spring-actuator-exposed
+language: java
+severity: warning
+message: |
+  Spring Boot Actuator endpoints may be exposed without authentication.
+  Actuator endpoints can reveal sensitive application internals (env, health, beans, mappings).
+  Secure actuator endpoints with Spring Security and restrict access to authorized users only.
+rule:
+  any:
+    - pattern: management.endpoints.web.exposure.include=*
+    - pattern: $HTTP.requestMatchers("/actuator/**").permitAll()
+metadata:
+  cwe: ["CWE-200"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      http.requestMatchers("/actuator/**").permitAll();
+  negative:
+    - |
+      http.requestMatchers("/actuator/**").hasRole("ADMIN");

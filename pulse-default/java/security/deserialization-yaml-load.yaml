@@ -1,0 +1,30 @@
+id: pulse.java.security.deserialization-yaml-load
+language: java
+severity: error
+message: |
+  Insecure deserialization via SnakeYAML Yaml.load().
+  The default Yaml.load() allows arbitrary object instantiation, leading to remote code execution.
+  Use new Yaml(new SafeConstructor()).load() or Yaml.loadAs() with a safe target type.
+rule:
+  any:
+    - pattern: new Yaml().load($INPUT)
+    - pattern: $YAML.load($INPUT)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new Yaml().load(userInput);
+    - |
+      Yaml yaml = new Yaml();
+      Object obj = yaml.load(request.getInputStream());
+  negative:
+    - |
+      new Yaml(new SafeConstructor()).load(input);
+    - |
+      yaml.loadAs(input, Config.class);

@@ -1,0 +1,29 @@
+id: pulse.java.security.spring-csrf-disabled
+language: java
+severity: warning
+message: |
+  CSRF protection is disabled in Spring Security configuration.
+  Disabling CSRF protection exposes the application to cross-site request forgery attacks.
+  Only disable CSRF for stateless APIs that use token-based authentication (e.g., JWT).
+rule:
+  any:
+    - pattern: $HTTP.csrf().disable()
+    - pattern: $HTTP.csrf($CUSTOMIZER).disable()
+metadata:
+  cwe: ["CWE-352"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      http.csrf().disable();
+    - |
+      http.csrf(csrf -> csrf.disable());
+  negative:
+    - |
+      http.csrf();
+    - |
+      http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());

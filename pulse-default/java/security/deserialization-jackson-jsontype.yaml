@@ -1,0 +1,32 @@
+id: pulse.java.security.deserialization-jackson-jsontype
+language: java
+severity: error
+message: |
+  Insecure deserialization via Jackson @JsonTypeInfo with Id.CLASS or Id.MINIMAL_CLASS.
+  Using CLASS or MINIMAL_CLASS as the type identifier allows attackers to specify arbitrary
+  classes for deserialization, leading to remote code execution.
+  Use Id.NAME with explicit @JsonSubTypes instead.
+rule:
+  any:
+    - pattern: $MAPPER.enableDefaultTyping()
+      has:
+        kind: method_invocation
+        stopBy: end
+    - pattern: "@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, $$$REST)"
+    - pattern: "@JsonTypeInfo(use = Id.CLASS, $$$REST)"
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+      public abstract class Animal {}
+  negative:
+    - |
+      @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+      public abstract class Animal {}

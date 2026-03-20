@@ -1,0 +1,29 @@
+id: pulse.java.security.cmd-injection-runtime-exec
+language: java
+severity: error
+message: |
+  Command injection via Runtime.exec().
+  Passing user-controlled input to Runtime.exec() allows arbitrary command execution.
+  Use a whitelist of allowed commands, avoid shell invocation, and validate all inputs.
+rule:
+  any:
+    - pattern: Runtime.getRuntime().exec($INPUT)
+    - pattern: Runtime.getRuntime().exec($INPUT, $$$ARGS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Runtime.getRuntime().exec(userCommand);
+    - |
+      Runtime.getRuntime().exec("cmd /c " + input);
+    - |
+      Runtime.getRuntime().exec(command, envp, dir);
+  negative:
+    - |
+      Runtime.getRuntime().availableProcessors();

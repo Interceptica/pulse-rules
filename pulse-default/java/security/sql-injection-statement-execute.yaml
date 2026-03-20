@@ -1,0 +1,30 @@
+id: pulse.java.security.sql-injection-statement-execute
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in Statement.execute() call.
+  Concatenating user input into SQL queries allows arbitrary SQL execution.
+  Use PreparedStatement with parameterized queries instead.
+rule:
+  pattern: $STMT.execute($ARG)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      stmt.execute("DROP TABLE " + tableName);
+    - |
+      stmt.execute("UPDATE users SET name = '" + name + "' WHERE id = " + id);
+  negative:
+    - |
+      stmt.execute("DROP TABLE temp_data");
+    - |
+      pstmt.execute();

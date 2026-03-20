@@ -1,0 +1,27 @@
+id: pulse.java.security.path-traversal-file-constructor
+language: java
+severity: error
+message: |
+  Path traversal via File constructor with user-controlled input.
+  An attacker can use path traversal sequences (../) to access arbitrary files.
+  Validate and canonicalize file paths. Use Path.normalize() and verify the resolved path is within the expected directory.
+rule:
+  pattern: new File($INPUT)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new File(userInput);
+    - |
+      new File(request.getParameter("path"));
+    - |
+      new File(basePath + "/" + fileName);
+  negative:
+    - |
+      new File("/etc/config.properties");

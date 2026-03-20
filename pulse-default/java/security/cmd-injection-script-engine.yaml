@@ -1,0 +1,25 @@
+id: pulse.java.security.cmd-injection-script-engine
+language: java
+severity: error
+message: |
+  Code injection via ScriptEngine.eval().
+  Passing user-controlled input to ScriptEngine.eval() allows arbitrary code execution.
+  Avoid evaluating dynamic scripts with user input. Use a sandboxed execution environment if needed.
+rule:
+  pattern: $ENGINE.eval($INPUT)
+metadata:
+  cwe: ["CWE-94"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: HIGH
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      engine.eval(userScript);
+    - |
+      scriptEngine.eval("var x = " + input);
+  negative:
+    - |
+      engine.eval("1 + 1");

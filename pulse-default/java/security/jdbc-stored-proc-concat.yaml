@@ -1,0 +1,30 @@
+id: pulse.java.security.jdbc-stored-proc-concat
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in callable statement preparation.
+  Concatenating user input into stored procedure calls allows arbitrary SQL execution.
+  Use parameterized callable statements with placeholder syntax: conn.prepareCall("{call proc(?)}").
+rule:
+  pattern: $CONN.prepareCall($PROC)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      conn.prepareCall("{call update_user(" + id + ", " + name + ")}");
+    - |
+      connection.prepareCall("EXEC " + procName + " " + param);
+  negative:
+    - |
+      conn.prepareCall("{call update_user(?, ?)}");
+    - |
+      conn.prepareCall("{call cleanup_expired}");

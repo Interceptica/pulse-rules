@@ -1,0 +1,31 @@
+id: pulse.java.security.ssrf-resttemplate
+language: java
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via Spring RestTemplate.
+  Passing user-controlled URLs to RestTemplate allows attackers to make requests
+  to internal services or arbitrary external hosts.
+  Validate and whitelist allowed URLs and hostnames. Block requests to internal networks.
+rule:
+  any:
+    - pattern: $REST.getForObject($INPUT, $$$ARGS)
+    - pattern: $REST.getForEntity($INPUT, $$$ARGS)
+    - pattern: $REST.postForObject($INPUT, $$$ARGS)
+    - pattern: $REST.postForEntity($INPUT, $$$ARGS)
+    - pattern: $REST.exchange($INPUT, $$$ARGS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      restTemplate.getForObject(userUrl, String.class);
+    - |
+      restTemplate.exchange(targetUrl, HttpMethod.GET, entity, String.class);
+  negative:
+    - |
+      restTemplate.getForObject("https://api.internal.com/users", UserList.class);

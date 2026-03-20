@@ -1,0 +1,30 @@
+id: pulse.java.security.deserialization-jackson-defaulttyping
+language: java
+severity: error
+message: |
+  Insecure deserialization via Jackson enableDefaultTyping().
+  Enabling default typing in Jackson allows polymorphic deserialization, which can lead
+  to remote code execution through gadget chains.
+  Use activateDefaultTyping() with a PolymorphicTypeValidator or avoid default typing entirely.
+rule:
+  any:
+    - pattern: $MAPPER.enableDefaultTyping()
+    - pattern: $MAPPER.enableDefaultTyping($$$ARGS)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      mapper.enableDefaultTyping();
+    - |
+      objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+  negative:
+    - |
+      mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
+    - |
+      mapper.readValue(json, MyClass.class);

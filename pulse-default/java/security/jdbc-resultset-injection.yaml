@@ -1,0 +1,27 @@
+id: pulse.java.security.jdbc-resultset-injection
+language: java
+severity: error
+message: |
+  SQL injection via ResultSet values used in subsequent SQL queries.
+  Using values from a ResultSet directly in SQL string concatenation can lead to
+  second-order SQL injection if the database contains attacker-controlled data.
+  Use PreparedStatement with parameterized queries for all SQL operations.
+rule:
+  pattern: $STMT.executeQuery("$PREFIX" + $RS.getString($$$ARGS))
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      stmt.executeQuery("SELECT * FROM orders WHERE user = '" + rs.getString("username") + "'");
+    - |
+      stmt.executeQuery("SELECT " + rs.getString(1) + " FROM table");
+  negative:
+    - |
+      pstmt.setString(1, rs.getString("username"));
+      pstmt.executeQuery();

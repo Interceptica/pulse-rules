@@ -1,0 +1,25 @@
+id: pulse.java.security.path-traversal-paths-get
+language: java
+severity: error
+message: |
+  Path traversal via Paths.get() with user-controlled input.
+  An attacker can use path traversal sequences (../) to access arbitrary files.
+  Validate and normalize file paths. Verify the resolved path is within the expected directory.
+rule:
+  pattern: Paths.get($INPUT)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Paths.get(userInput);
+    - |
+      Paths.get(request.getParameter("file"));
+  negative:
+    - |
+      Paths.get("/app/config/settings.xml");

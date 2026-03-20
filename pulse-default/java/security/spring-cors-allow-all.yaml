@@ -1,0 +1,33 @@
+id: pulse.java.security.spring-cors-allow-all
+language: java
+severity: warning
+message: |
+  CORS configuration allows all origins.
+  Using allowedOrigins("*") permits any website to make cross-origin requests to this application,
+  potentially exposing sensitive data.
+  Restrict allowed origins to trusted domains only.
+rule:
+  any:
+    - pattern: allowedOrigins("*")
+    - pattern: allowedOriginPatterns("*")
+    - pattern: $REGISTRY.addMapping("/**").allowedOrigins("*")
+metadata:
+  cwe: ["CWE-942"]
+  owasp: ["A05:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      registry.addMapping("/**").allowedOrigins("*");
+    - |
+      config.allowedOrigins("*");
+    - |
+      cors.allowedOriginPatterns("*");
+  negative:
+    - |
+      registry.addMapping("/**").allowedOrigins("https://example.com");
+    - |
+      config.allowedOrigins("https://trusted.com");

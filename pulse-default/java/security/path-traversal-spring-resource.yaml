@@ -1,0 +1,25 @@
+id: pulse.java.security.path-traversal-spring-resource
+language: java
+severity: error
+message: |
+  Path traversal via Spring resource loading with user-controlled input.
+  An attacker can use path traversal sequences (../) to access arbitrary resources.
+  Validate and sanitize resource paths. Ensure the resolved path stays within the intended directory.
+rule:
+  pattern: $LOADER.getResource($INPUT)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      resourceLoader.getResource(userInput);
+    - |
+      loader.getResource("file:" + request.getParameter("path"));
+  negative:
+    - |
+      resourceLoader.getResource("classpath:config.xml");

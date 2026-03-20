@@ -1,0 +1,32 @@
+id: pulse.java.security.spring-xss-response
+language: java
+severity: error
+message: |
+  Cross-Site Scripting (XSS) via direct response writing.
+  Writing user-controlled input directly to the HTTP response without encoding allows
+  attackers to inject malicious scripts.
+  Use proper output encoding (e.g., OWASP Java Encoder) or use templating engines that auto-escape.
+rule:
+  any:
+    - pattern: $RESPONSE.getWriter().write($INPUT)
+    - pattern: $RESPONSE.getWriter().print($INPUT)
+    - pattern: $RESPONSE.getWriter().println($INPUT)
+    - pattern: $RESPONSE.getOutputStream().write($INPUT)
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      response.getWriter().write(userInput);
+    - |
+      response.getWriter().println(request.getParameter("name"));
+  negative:
+    - |
+      response.getWriter().write(Encode.forHtml(userInput));
+    - |
+      response.getWriter().write("OK");

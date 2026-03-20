@@ -1,0 +1,30 @@
+id: pulse.java.security.jdbc-batch-concat
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in Statement.addBatch() call.
+  Using Statement.addBatch() with concatenated SQL strings allows arbitrary SQL execution.
+  Use PreparedStatement.addBatch() with parameterized queries instead.
+rule:
+  pattern: $STMT.addBatch($SQL)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      statement.addBatch("DELETE FROM users WHERE id = " + id);
+    - |
+      stmt.addBatch("UPDATE accounts SET balance = " + amount + " WHERE id = " + accountId);
+  negative:
+    - |
+      preparedStatement.addBatch();
+    - |
+      stmt.addBatch("TRUNCATE TABLE temp_data");

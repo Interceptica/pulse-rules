@@ -1,0 +1,26 @@
+id: pulse.java.security.jdbc-no-prepared-statement
+language: java
+severity: error
+message: |
+  SQL injection via Statement.createStatement() with dynamic SQL.
+  Using createStatement() with string concatenation allows SQL injection.
+  Use PreparedStatement with parameterized queries instead.
+rule:
+  pattern: $CONN.createStatement()
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Statement stmt = conn.createStatement();
+      stmt.executeQuery("SELECT * FROM users WHERE id = " + id);
+    - |
+      connection.createStatement();
+  negative:
+    - |
+      conn.prepareStatement("SELECT * FROM users WHERE id = ?");

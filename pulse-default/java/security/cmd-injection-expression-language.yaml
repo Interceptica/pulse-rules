@@ -1,0 +1,30 @@
+id: pulse.java.security.cmd-injection-expression-language
+language: java
+severity: error
+message: |
+  Expression Language injection via dynamic expression evaluation.
+  Passing user-controlled input to EL expression evaluation allows arbitrary code execution.
+  Never pass user input directly to expression evaluators. Use parameterized approaches instead.
+rule:
+  any:
+    - pattern: $FACTORY.createValueExpression($CTX, $INPUT, $$$ARGS)
+    - pattern: $PARSER.parseExpression($INPUT)
+    - pattern: $ELPROC.getValue($CTX, $INPUT, $$$ARGS)
+metadata:
+  cwe: ["CWE-917"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: HIGH
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      factory.createValueExpression(context, userInput, String.class);
+    - |
+      parser.parseExpression(userExpression);
+  negative:
+    - |
+      factory.createValueExpression(context, "#{bean.name}", String.class);
+    - |
+      parser.parseExpression("1 + 1");

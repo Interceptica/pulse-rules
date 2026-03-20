@@ -1,0 +1,29 @@
+id: pulse.java.security.ssrf-url-openconnection
+language: java
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via URL.openConnection().
+  Creating a URL from user-controlled input and opening a connection allows attackers
+  to make requests to internal services or arbitrary external hosts.
+  Validate and whitelist allowed URLs and hostnames. Block requests to internal networks.
+rule:
+  any:
+    - pattern: new URL($INPUT).openConnection()
+    - pattern: new URL($INPUT).openStream()
+    - pattern: new URL($INPUT).openConnection($$$ARGS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new URL(userUrl).openConnection();
+    - |
+      new URL(request.getParameter("url")).openStream();
+  negative:
+    - |
+      new URL("https://api.internal.com/health").openConnection();

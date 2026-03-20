@@ -1,0 +1,25 @@
+id: pulse.java.security.path-traversal-fileoutputstream
+language: java
+severity: error
+message: |
+  Path traversal via FileOutputStream with user-controlled input.
+  An attacker can use path traversal sequences (../) to write arbitrary files on the server.
+  Validate and canonicalize file paths before opening streams. Verify the path is within the expected directory.
+rule:
+  pattern: new FileOutputStream($INPUT)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new FileOutputStream(userInput);
+    - |
+      new FileOutputStream(uploadDir + "/" + fileName);
+  negative:
+    - |
+      new FileOutputStream("/tmp/app.log");

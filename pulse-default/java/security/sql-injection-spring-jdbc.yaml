@@ -1,0 +1,30 @@
+id: pulse.java.security.sql-injection-spring-jdbc
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in Spring JdbcTemplate query() call.
+  Concatenating user input into SQL queries allows arbitrary SQL execution.
+  Use parameterized queries instead: jdbcTemplate.query("SELECT ... WHERE id = ?", mapper, id).
+rule:
+  pattern: $JDBC.query($ARG, $$$ARGS)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      jdbcTemplate.query("SELECT * FROM users WHERE name = '" + name + "'", rowMapper);
+    - |
+      jdbc.query("SELECT " + columns + " FROM users", rs -> rs.getString(1));
+  negative:
+    - |
+      jdbcTemplate.query("SELECT * FROM users WHERE id = ?", rowMapper, userId);
+    - |
+      jdbcTemplate.query("SELECT * FROM users", rowMapper);

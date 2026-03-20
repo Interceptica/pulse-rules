@@ -1,0 +1,31 @@
+id: pulse.java.security.deserialization-xstream
+language: java
+severity: error
+message: |
+  Insecure deserialization via XStream.fromXML().
+  XStream without security configuration allows arbitrary object instantiation and remote code execution.
+  Configure XStream security: xstream.addPermission(NoTypePermission.NONE) and explicitly allow only safe types.
+rule:
+  any:
+    - pattern: new XStream().fromXML($INPUT)
+    - pattern: $XSTREAM.fromXML($INPUT)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new XStream().fromXML(userInput);
+    - |
+      XStream xstream = new XStream();
+      Object obj = xstream.fromXML(xmlData);
+  negative:
+    - |
+      XStream xstream = new XStream();
+      xstream.addPermission(NoTypePermission.NONE);
+      xstream.allowTypes(new Class[]{SafeClass.class});
+      xstream.fromXML(input);

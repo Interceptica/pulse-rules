@@ -1,0 +1,28 @@
+id: pulse.java.security.spring-open-redirect
+language: java
+severity: error
+message: |
+  Open redirect via Spring controller return value.
+  Returning a redirect URL that includes user-controlled input allows attackers to redirect
+  users to malicious sites for phishing attacks.
+  Validate redirect URLs against a whitelist of allowed destinations.
+rule:
+  pattern: return "redirect:" + $INPUT
+metadata:
+  cwe: ["CWE-601"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      return "redirect:" + userUrl;
+    - |
+      return "redirect:" + request.getParameter("next");
+  negative:
+    - |
+      return "redirect:/dashboard";
+    - |
+      return "redirect:/login?error";

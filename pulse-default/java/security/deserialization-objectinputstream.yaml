@@ -1,0 +1,27 @@
+id: pulse.java.security.deserialization-objectinputstream
+language: java
+severity: error
+message: |
+  Insecure deserialization via ObjectInputStream.
+  Deserializing untrusted data with ObjectInputStream can lead to remote code execution.
+  Use a safe alternative like JSON or implement a ValidatingObjectInputStream with an allowlist of classes.
+rule:
+  pattern: new ObjectInputStream($INPUT)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new ObjectInputStream(request.getInputStream());
+    - |
+      new ObjectInputStream(socket.getInputStream());
+    - |
+      new ObjectInputStream(new ByteArrayInputStream(data));
+  negative:
+    - |
+      new ObjectOutputStream(outputStream);

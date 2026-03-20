@@ -1,0 +1,27 @@
+id: pulse.java.security.xxe-xmlinputfactory
+language: java
+severity: error
+message: |
+  Potential XXE vulnerability via XMLInputFactory.
+  The default configuration of XMLInputFactory may allow external entity processing,
+  which can lead to file disclosure, SSRF, and denial of service.
+  Disable external entities: factory.setProperty(XMLInputFactory.SUPPORT_DTD, false).
+rule:
+  pattern: XMLInputFactory.newInstance()
+metadata:
+  cwe: ["CWE-611"]
+  owasp: ["A05:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      XMLInputFactory factory = XMLInputFactory.newInstance();
+      XMLStreamReader reader = factory.createXMLStreamReader(input);
+  negative:
+    - |
+      XMLInputFactory factory = XMLInputFactory.newInstance();
+      factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+      XMLStreamReader reader = factory.createXMLStreamReader(input);

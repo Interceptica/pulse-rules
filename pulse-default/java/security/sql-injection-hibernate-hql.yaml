@@ -1,0 +1,30 @@
+id: pulse.java.security.sql-injection-hibernate-hql
+language: java
+severity: error
+message: |
+  SQL injection via string concatenation in Hibernate createQuery() call.
+  Concatenating user input into HQL queries allows arbitrary query execution.
+  Use named parameters instead: session.createQuery("FROM User WHERE id = :id").setParameter("id", value).
+rule:
+  pattern: $SESSION.createQuery($ARG)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      session.createQuery("FROM User WHERE name = '" + name + "'");
+    - |
+      em.createQuery("SELECT u FROM User u WHERE u.id = " + id);
+  negative:
+    - |
+      session.createQuery("FROM User WHERE name = :name");
+    - |
+      session.createQuery("FROM User");

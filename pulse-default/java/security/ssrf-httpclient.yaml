@@ -1,0 +1,32 @@
+id: pulse.java.security.ssrf-httpclient
+language: java
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via HttpClient.
+  Sending HTTP requests to user-controlled URLs allows attackers to make requests
+  to internal services or arbitrary external hosts.
+  Validate and whitelist allowed URLs and hostnames. Block requests to internal networks.
+rule:
+  any:
+    - pattern: HttpRequest.newBuilder().uri(URI.create($INPUT))
+    - pattern: $CLIENT.execute(new HttpGet($INPUT))
+    - pattern: new HttpGet($INPUT)
+    - pattern: new HttpPost($INPUT)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      HttpRequest.newBuilder().uri(URI.create(userUrl));
+    - |
+      httpClient.execute(new HttpGet(userUrl));
+    - |
+      new HttpGet(request.getParameter("target"));
+  negative:
+    - |
+      new HttpGet("https://api.example.com/data");

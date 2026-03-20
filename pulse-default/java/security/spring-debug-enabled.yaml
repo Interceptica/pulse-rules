@@ -1,0 +1,28 @@
+id: pulse.java.security.spring-debug-enabled
+language: java
+severity: warning
+message: |
+  Debug or verbose error information may be exposed to users.
+  Enabling debug mode or exposing stack traces in production reveals implementation details
+  that help attackers identify vulnerabilities.
+  Disable debug mode in production. Use custom error handlers that return generic error messages.
+rule:
+  any:
+    - pattern: "@EnableWebSecurity(debug = true)"
+    - pattern: $HTTP.exceptionHandling().accessDeniedPage($PAGE)
+metadata:
+  cwe: ["CWE-209"]
+  owasp: ["A05:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: LOW
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      @EnableWebSecurity(debug = true)
+      public class SecurityConfig extends WebSecurityConfigurerAdapter {}
+  negative:
+    - |
+      @EnableWebSecurity
+      public class SecurityConfig extends WebSecurityConfigurerAdapter {}

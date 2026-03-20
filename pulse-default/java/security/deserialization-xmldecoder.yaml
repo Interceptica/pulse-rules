@@ -1,0 +1,25 @@
+id: pulse.java.security.deserialization-xmldecoder
+language: java
+severity: error
+message: |
+  Insecure deserialization via XMLDecoder.
+  XMLDecoder can execute arbitrary code during deserialization of XML data.
+  Avoid XMLDecoder for untrusted input. Use safe XML parsing or JSON deserialization instead.
+rule:
+  pattern: new XMLDecoder($INPUT)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      new XMLDecoder(request.getInputStream());
+    - |
+      new XMLDecoder(new BufferedInputStream(input));
+  negative:
+    - |
+      new XMLEncoder(outputStream);
