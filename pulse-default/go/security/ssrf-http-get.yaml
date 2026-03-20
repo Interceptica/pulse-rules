@@ -1,0 +1,30 @@
+id: pulse.go.security.ssrf-http-get
+language: go
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via http.Get() or http.Post().
+  Passing user-controlled URLs to http.Get() or http.Post() allows attackers to make the server
+  send requests to internal services, cloud metadata endpoints, or other unintended destinations.
+  Validate URLs against an allowlist of permitted hosts and schemes before making requests.
+rule:
+  any:
+    - pattern: http.Get($URL)
+    - pattern: http.Post($URL, $$$ARGS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      http.Get(userURL)
+    - |
+      http.Post(targetURL, "application/json", body)
+  negative:
+    - |
+      http.Get("https://api.example.com/data")
+    - |
+      http.Post("https://api.example.com/submit", "application/json", body)

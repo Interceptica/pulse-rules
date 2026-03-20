@@ -1,0 +1,38 @@
+id: pulse.go.security.sql-injection-sqlx
+language: go
+severity: error
+message: |
+  SQL injection via string concatenation in sqlx query function.
+  User-controlled data concatenated into a SQL query passed to sqlx.Get() or sqlx.Select() allows
+  arbitrary SQL execution.
+  Use parameterized queries instead: sqlx.Get(db, &user, "SELECT * FROM users WHERE id = $1", id)
+rule:
+  any:
+    - pattern: sqlx.Get($DB, $DEST, $QUERY)
+      has:
+        kind: binary_expression
+        stopBy: end
+    - pattern: sqlx.Select($DB, $DEST, $QUERY)
+      has:
+        kind: binary_expression
+        stopBy: end
+    - pattern: sqlx.Get($DB, $DEST, fmt.Sprintf($FMT, $$$ARGS))
+    - pattern: sqlx.Select($DB, $DEST, fmt.Sprintf($FMT, $$$ARGS))
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      sqlx.Get(db, &user, "SELECT * FROM users WHERE id = " + id)
+    - |
+      sqlx.Select(db, &users, "SELECT * FROM users WHERE role = '" + role + "'")
+  negative:
+    - |
+      sqlx.Get(db, &user, "SELECT * FROM users WHERE id = $1", id)
+    - |
+      sqlx.Select(db, &users, "SELECT * FROM users WHERE role = $1", role)

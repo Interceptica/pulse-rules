@@ -1,0 +1,31 @@
+id: pulse.go.security.path-traversal-readfile
+language: go
+severity: error
+message: |
+  Potential path traversal via file read function.
+  If user-controlled data is used in the file path passed to os.ReadFile() or ioutil.ReadFile(),
+  an attacker may read arbitrary files on the filesystem using sequences like "../".
+  Sanitize paths with filepath.Clean() and verify the result is within the intended directory
+  using strings.HasPrefix(cleanedPath, allowedBase).
+rule:
+  any:
+    - pattern: os.ReadFile($PATH)
+    - pattern: ioutil.ReadFile($PATH)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.ReadFile(userPath)
+    - |
+      ioutil.ReadFile(r.URL.Query().Get("file"))
+  negative:
+    - |
+      os.ReadFile("/etc/config.yaml")
+    - |
+      os.ReadFile("templates/index.html")

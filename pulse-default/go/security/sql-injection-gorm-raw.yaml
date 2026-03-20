@@ -1,0 +1,32 @@
+id: pulse.go.security.sql-injection-gorm-raw
+language: go
+severity: error
+message: |
+  SQL injection via GORM Raw() with dynamic query construction.
+  User-controlled data concatenated or formatted into a Raw() query allows arbitrary SQL execution.
+  Use GORM's parameterized Raw() instead: db.Raw("SELECT * FROM users WHERE id = ?", id)
+rule:
+  any:
+    - pattern: $DB.Raw($QUERY)
+      has:
+        kind: binary_expression
+        stopBy: end
+    - pattern: $DB.Raw(fmt.Sprintf($FMT, $$$ARGS))
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      db.Raw("SELECT * FROM users WHERE id = " + userId).Scan(&user)
+    - |
+      db.Raw(fmt.Sprintf("SELECT * FROM users WHERE name = '%s'", name)).Scan(&user)
+  negative:
+    - |
+      db.Raw("SELECT * FROM users WHERE id = ?", userId).Scan(&user)
+    - |
+      db.Raw("SELECT * FROM users").Scan(&users)

@@ -1,0 +1,27 @@
+id: pulse.go.security.cmd-injection-os-startprocess
+language: go
+severity: error
+message: |
+  Potential command injection via os.StartProcess().
+  If user-controlled data is passed as the command path or arguments to os.StartProcess(), an attacker
+  may execute arbitrary system commands.
+  Validate all inputs against an allowlist of permitted commands and arguments before execution.
+  Prefer exec.Command() with hardcoded command paths where possible.
+rule:
+  pattern: os.StartProcess($CMD, $$$ARGS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.StartProcess(userInput, []string{userInput, "-l"}, &os.ProcAttr{})
+    - |
+      os.StartProcess(cmdPath, args, attr)
+  negative:
+    - |
+      os.StartProcess("/usr/bin/ls", []string{"ls", "-la"}, &os.ProcAttr{})

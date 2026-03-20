@@ -1,0 +1,30 @@
+id: pulse.go.security.ssrf-http-newrequest
+language: go
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via http.NewRequest() or http.NewRequestWithContext().
+  Passing user-controlled URLs to HTTP request constructors allows attackers to make the server
+  send requests to internal services, cloud metadata endpoints, or other unintended destinations.
+  Validate URLs against an allowlist of permitted hosts and schemes before making requests.
+rule:
+  any:
+    - pattern: http.NewRequest($METHOD, $URL, $$$ARGS)
+    - pattern: http.NewRequestWithContext($CTX, $METHOD, $URL, $$$ARGS)
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      http.NewRequest("GET", userURL, nil)
+    - |
+      http.NewRequestWithContext(ctx, "POST", targetURL, body)
+  negative:
+    - |
+      http.NewRequest("GET", "https://api.example.com/data", nil)
+    - |
+      http.NewRequestWithContext(ctx, "POST", "https://api.example.com/submit", body)

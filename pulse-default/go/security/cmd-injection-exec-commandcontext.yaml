@@ -1,0 +1,28 @@
+id: pulse.go.security.cmd-injection-exec-commandcontext
+language: go
+severity: error
+message: |
+  Potential command injection via exec.CommandContext().
+  If user-controlled data is passed as the command or arguments to exec.CommandContext(), an attacker
+  may execute arbitrary system commands.
+  Validate all inputs against an allowlist of permitted commands and arguments before execution.
+rule:
+  pattern: exec.CommandContext($CTX, $CMD, $$$ARGS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      exec.CommandContext(ctx, userInput, "-l")
+    - |
+      exec.CommandContext(ctx, "sh", "-c", userCommand)
+  negative:
+    - |
+      exec.CommandContext(ctx, "git", "status")
+    - |
+      exec.CommandContext(ctx, "/usr/bin/ls", "-la")

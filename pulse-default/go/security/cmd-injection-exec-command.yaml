@@ -1,0 +1,28 @@
+id: pulse.go.security.cmd-injection-exec-command
+language: go
+severity: error
+message: |
+  Potential command injection via exec.Command().
+  If user-controlled data is passed as the command or arguments to exec.Command(), an attacker
+  may execute arbitrary system commands.
+  Validate all inputs against an allowlist of permitted commands and arguments before execution.
+rule:
+  pattern: exec.Command($CMD, $$$ARGS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      exec.Command(userInput, "-l")
+    - |
+      exec.Command("sh", "-c", userCommand)
+  negative:
+    - |
+      exec.Command("git", "status")
+    - |
+      exec.Command("/usr/bin/ls", "-la")

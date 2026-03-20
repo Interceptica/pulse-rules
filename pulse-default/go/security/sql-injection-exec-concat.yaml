@@ -1,0 +1,30 @@
+id: pulse.go.security.sql-injection-exec-concat
+language: go
+severity: error
+message: |
+  SQL injection via string concatenation in Exec() call.
+  User-controlled data concatenated into a SQL statement passed to Exec() allows arbitrary SQL execution.
+  Use parameterized queries instead: db.Exec("INSERT INTO users (name) VALUES ($1)", name)
+rule:
+  pattern: $DB.Exec($QUERY)
+  has:
+    kind: binary_expression
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      db.Exec("DELETE FROM users WHERE id = " + userId)
+    - |
+      db.Exec("UPDATE users SET name = '" + name + "' WHERE id = " + id)
+  negative:
+    - |
+      db.Exec("DELETE FROM users WHERE id = $1", userId)
+    - |
+      db.Exec("UPDATE users SET name = $1 WHERE id = $2", name, id)

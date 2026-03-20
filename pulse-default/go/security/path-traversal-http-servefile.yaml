@@ -1,0 +1,28 @@
+id: pulse.go.security.path-traversal-http-servefile
+language: go
+severity: error
+message: |
+  Potential path traversal via http.ServeFile().
+  If user-controlled data is used in the file path passed to http.ServeFile(), an attacker may
+  access arbitrary files on the filesystem using sequences like "../".
+  Sanitize paths with filepath.Clean() and verify the result is within the intended directory
+  using strings.HasPrefix(cleanedPath, allowedBase). Consider using http.FileServer with
+  http.Dir() which restricts access to a specific directory tree.
+rule:
+  pattern: http.ServeFile($W, $R, $PATH)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      http.ServeFile(w, r, r.URL.Path)
+    - |
+      http.ServeFile(w, r, filepath.Join("uploads", fileName))
+  negative:
+    - |
+      http.ServeFile(w, r, "static/index.html")

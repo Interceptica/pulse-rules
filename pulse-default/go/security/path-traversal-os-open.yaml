@@ -1,0 +1,31 @@
+id: pulse.go.security.path-traversal-os-open
+language: go
+severity: error
+message: |
+  Potential path traversal via os.Open() or os.OpenFile().
+  If user-controlled data is used in the file path without sanitization, an attacker may read or
+  write arbitrary files on the filesystem using sequences like "../".
+  Sanitize paths with filepath.Clean() and verify the result is within the intended directory
+  using strings.HasPrefix(cleanedPath, allowedBase).
+rule:
+  any:
+    - pattern: os.Open($PATH)
+    - pattern: os.OpenFile($PATH, $$$ARGS)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.Open(userPath)
+    - |
+      os.OpenFile(filepath.Join(baseDir, fileName), os.O_RDONLY, 0644)
+  negative:
+    - |
+      os.Open("/etc/config.yaml")
+    - |
+      os.Open("static/index.html")
