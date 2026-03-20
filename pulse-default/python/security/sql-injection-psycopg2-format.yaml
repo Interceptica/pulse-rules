@@ -1,0 +1,31 @@
+id: pulse.python.security.sql-injection-psycopg2-format
+language: python
+severity: error
+message: |
+  SQL injection via .format() on a query variable passed to execute().
+  Building SQL by calling .format() on a string and passing it to execute() allows arbitrary SQL execution.
+  Use parameterized queries instead: cursor.execute("SELECT ... WHERE id = %s", (param,))
+rule:
+  pattern: $OBJ.execute($QUERY.format($$$FMT_ARGS))
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      cursor.execute(query.format(user_id))
+    - |
+      cursor.execute(sql.format(table=table_name, id=user_id))
+    - |
+      db.execute(base_query.format(name))
+  negative:
+    - |
+      cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    - |
+      cursor.execute(query, (param,))
+    - |
+      result = query.format(user_id)

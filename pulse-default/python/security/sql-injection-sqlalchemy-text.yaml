@@ -1,0 +1,35 @@
+id: pulse.python.security.sql-injection-sqlalchemy-text
+language: python
+severity: error
+message: |
+  SQL injection via SQLAlchemy text() with f-string or formatted string.
+  Passing dynamic strings to text() allows arbitrary SQL execution.
+  Use bound parameters instead: text("SELECT ... WHERE id = :id").bindparams(id=param)
+rule:
+  pattern: text($$$ARGS)
+  has:
+    any:
+      - kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+      - pattern: $STR.format($$$FMT_ARGS)
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      db.execute(text(f"SELECT * FROM users WHERE id = {user_id}"))
+    - |
+      session.execute(text("SELECT * FROM users WHERE name = '{}'".format(name)))
+  negative:
+    - |
+      db.execute(text("SELECT * FROM users WHERE id = :id"), {"id": user_id})
+    - |
+      db.execute(text("SELECT * FROM users"))

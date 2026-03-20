@@ -1,0 +1,37 @@
+id: pulse.python.security.sql-injection-fstring
+language: python
+severity: error
+message: |
+  SQL injection via f-string in execute() call.
+  User-controlled data interpolated into an f-string SQL query allows arbitrary SQL execution.
+  Use parameterized queries instead: cursor.execute("SELECT ... WHERE id = %s", (param,))
+rule:
+  pattern: $OBJ.execute($$$ARGS)
+  has:
+    kind: formatted_string
+    has:
+      kind: interpolation
+      stopBy: end
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+    - |
+      db.execute(f"INSERT INTO logs VALUES ({msg})")
+    - |
+      conn.execute(f"DELETE FROM users WHERE name = '{name}'")
+  negative:
+    - |
+      cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    - |
+      cursor.execute("SELECT * FROM users")
+    - |
+      print(f"SELECT * FROM users WHERE id = {user_id}")

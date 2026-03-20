@@ -1,0 +1,35 @@
+id: pulse.python.security.sql-injection-django-extra
+language: python
+severity: error
+message: |
+  SQL injection via Django's extra() with dynamic where clause.
+  Passing f-strings or formatted strings to .extra(where=...) allows arbitrary SQL execution.
+  Use Django ORM filters instead: queryset.filter(field=value)
+rule:
+  pattern: $QS.extra($$$ARGS)
+  has:
+    any:
+      - kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+      - pattern: $STR.format($$$FMT_ARGS)
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      queryset.extra(where=[f"name = '{name}'"])
+    - |
+      qs.extra(where=["id = {}".format(user_id)])
+  negative:
+    - |
+      queryset.extra(where=["name = %s"], params=[name])
+    - |
+      queryset.filter(name=name)

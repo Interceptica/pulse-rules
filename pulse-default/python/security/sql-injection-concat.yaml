@@ -1,0 +1,38 @@
+id: pulse.python.security.sql-injection-concat
+language: python
+severity: error
+message: |
+  SQL injection via string concatenation in execute() call.
+  Concatenating user input into SQL queries allows arbitrary SQL execution.
+  Use parameterized queries instead: cursor.execute("SELECT ... WHERE id = %s", (param,))
+rule:
+  pattern: $OBJ.execute($$$ARGS)
+  has:
+    kind: binary_operator
+    regex: "\\+"
+    has:
+      kind: string
+      stopBy: end
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      cursor.execute("SELECT * FROM users WHERE id = " + user_id)
+    - |
+      db.execute("INSERT INTO " + table + " VALUES (1)")
+    - |
+      cursor.execute("DELETE FROM users WHERE name = '" + name + "'")
+  negative:
+    - |
+      cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    - |
+      cursor.execute("SELECT * FROM users")
+    - |
+      result = "SELECT " + column

@@ -1,0 +1,35 @@
+id: pulse.python.security.sql-injection-django-raw
+language: python
+severity: error
+message: |
+  SQL injection via Django's raw() with dynamic query string.
+  Passing f-strings or formatted strings to .objects.raw() allows arbitrary SQL execution.
+  Use parameterized queries instead: Model.objects.raw("SELECT ... WHERE id = %s", [param])
+rule:
+  pattern: $MODEL.objects.raw($$$ARGS)
+  has:
+    any:
+      - kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+      - pattern: $STR.format($$$FMT_ARGS)
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      User.objects.raw(f"SELECT * FROM auth_user WHERE id = {user_id}")
+    - |
+      Post.objects.raw("SELECT * FROM blog_post WHERE author = '{}'".format(author))
+  negative:
+    - |
+      User.objects.raw("SELECT * FROM auth_user WHERE id = %s", [user_id])
+    - |
+      User.objects.raw("SELECT * FROM auth_user")
