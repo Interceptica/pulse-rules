@@ -1,0 +1,37 @@
+id: pulse.python.security.crypto-no-verify-ssl
+language: python
+severity: warning
+message: |
+  SSL/TLS certificate verification disabled.
+  Setting verify=False in requests disables certificate validation, making the connection
+  vulnerable to man-in-the-middle attacks.
+  Remove verify=False to use default certificate verification, or point verify to a custom
+  CA bundle: requests.get(url, verify="/path/to/ca-bundle.crt").
+rule:
+  any:
+    - pattern: requests.get($$$ARGS, verify=False, $$$REST)
+    - pattern: requests.post($$$ARGS, verify=False, $$$REST)
+    - pattern: requests.put($$$ARGS, verify=False, $$$REST)
+    - pattern: requests.delete($$$ARGS, verify=False, $$$REST)
+    - pattern: requests.patch($$$ARGS, verify=False, $$$REST)
+    - pattern: requests.request($$$ARGS, verify=False, $$$REST)
+metadata:
+  cwe: ["CWE-295"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      requests.get(url, verify=False)
+    - |
+      requests.post(url, data=payload, verify=False)
+  negative:
+    - |
+      requests.get(url)
+    - |
+      requests.get(url, verify=True)
+    - |
+      requests.get(url, verify="/etc/ssl/certs/ca-certificates.crt")

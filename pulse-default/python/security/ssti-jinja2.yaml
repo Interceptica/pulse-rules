@@ -1,0 +1,56 @@
+id: pulse.python.security.ssti-jinja2
+language: python
+severity: error
+message: |
+  Server-Side Template Injection (SSTI) via Jinja2.
+  Constructing Jinja2 templates from user-controlled strings allows attackers to execute
+  arbitrary Python code on the server through template expressions.
+  Never pass user input as the template source. Use file-based templates and pass user data
+  as context variables to template.render(). If dynamic templates are required, use a
+  sandboxed environment: jinja2.sandbox.SandboxedEnvironment().
+rule:
+  any:
+    - pattern: Template($ARG).render($$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: Template($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: $ENV.from_string($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: Environment($$$OPTS).from_string($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-1336"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Template(user_input).render()
+    - |
+      Template(request.form["tmpl"]).render(name=name)
+    - |
+      env.from_string(user_template)
+    - |
+      Environment().from_string(user_input)
+  negative:
+    - |
+      Template("Hello {{ name }}").render(name=name)
+    - |
+      env.get_template("index.html")
+    - |
+      env.from_string("Hello {{ name }}")

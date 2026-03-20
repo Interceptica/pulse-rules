@@ -1,0 +1,35 @@
+id: pulse.python.security.hardcoded-database-url
+language: python
+severity: warning
+message: |
+  Hardcoded database URL with credentials detected.
+  Database connection strings containing usernames and passwords in source code expose
+  credentials through version control and code sharing.
+  Use environment variables: DATABASE_URL = os.environ["DATABASE_URL"].
+rule:
+  pattern: $VAR = $VAL
+  constraints:
+    VAR:
+      regex: "(?i)(database_url|db_url|db_uri|database_uri|sqlalchemy_database_uri|connection_string|conn_str)"
+    VAL:
+      regex: "^[\"'](postgresql|mysql|mongodb|redis|mssql|oracle|sqlite)://"
+metadata:
+  cwe: ["CWE-798"]
+  owasp: ["A07:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      DATABASE_URL = "postgresql://admin:secret@db.example.com:5432/mydb"
+    - |
+      db_url = "mysql://root:password@localhost/app"
+    - |
+      SQLALCHEMY_DATABASE_URI = "postgresql://user:pass@host/db"
+  negative:
+    - |
+      DATABASE_URL = os.environ["DATABASE_URL"]
+    - |
+      DATABASE_URL = config("DATABASE_URL")

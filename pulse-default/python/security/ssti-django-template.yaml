@@ -1,0 +1,42 @@
+id: pulse.python.security.ssti-django-template
+language: python
+severity: error
+message: |
+  Server-Side Template Injection (SSTI) via Django Template.
+  Constructing Django templates from user-controlled strings allows attackers to access
+  sensitive template context variables and potentially execute arbitrary code through
+  custom template tags.
+  Never pass user input as the template source. Use file-based templates via
+  django.template.loader.get_template() and pass user data through the context dictionary.
+rule:
+  any:
+    - pattern: django.template.Template($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: Template($ARG).render($$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-1336"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      django.template.Template(user_input)
+    - |
+      Template(request.POST["template"]).render(context)
+  negative:
+    - |
+      django.template.Template("Hello {{ name }}")
+    - |
+      Template("{{ value }}").render(Context({"value": name}))
+    - |
+      get_template("index.html")

@@ -1,0 +1,32 @@
+id: pulse.python.security.crypto-weak-hash-sha1
+language: python
+severity: warning
+message: |
+  Use of weak SHA-1 hash algorithm.
+  SHA-1 is cryptographically broken with demonstrated collision attacks (SHAttered).
+  It should not be used for password hashing, digital signatures, or certificate verification.
+  Use hashlib.sha256() or hashlib.sha3_256() for integrity checks, or bcrypt/argon2 for passwords.
+rule:
+  any:
+    - pattern: hashlib.sha1($$$ARGS)
+    - pattern: hashlib.new("sha1", $$$ARGS)
+metadata:
+  cwe: ["CWE-328"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      hashlib.sha1(data)
+    - |
+      hashlib.sha1(password.encode())
+    - |
+      hashlib.new("sha1", data)
+  negative:
+    - |
+      hashlib.sha256(data)
+    - |
+      hashlib.sha3_256(data)

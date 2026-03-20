@@ -1,0 +1,46 @@
+id: pulse.python.security.ssti-mako
+language: python
+severity: error
+message: |
+  Server-Side Template Injection (SSTI) via Mako.
+  Constructing Mako templates from user-controlled strings allows attackers to execute
+  arbitrary Python code through template expressions like ${__import__('os').system('cmd')}.
+  Never pass user input as template source. Use file-based templates with TemplateLookup
+  and pass user data as render arguments.
+rule:
+  any:
+    - pattern: mako.template.Template($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: Template($ARG).render($$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: mako.template.Template($ARG).render($$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-1336"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      mako.template.Template(user_input)
+    - |
+      mako.template.Template(request.data).render()
+    - |
+      Template(user_input).render(name=name)
+  negative:
+    - |
+      mako.template.Template(filename="template.html")
+    - |
+      Template("<h1>${name}</h1>").render(name=name)

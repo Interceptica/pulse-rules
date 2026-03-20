@@ -1,0 +1,28 @@
+id: pulse.python.security.deserialization-shelve
+language: python
+severity: error
+message: |
+  Insecure deserialization via shelve.open().
+  shelve uses pickle internally. Opening a shelve database from an untrusted source allows
+  arbitrary code execution during deserialization.
+  Use safe storage formats like JSON or SQLite for untrusted data.
+rule:
+  any:
+    - pattern: shelve.open($ARG)
+    - pattern: shelve.open($ARG, $$$OPTS)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      shelve.open(user_path)
+    - |
+      db = shelve.open(filename, "r")
+  negative:
+    - |
+      json.load(open(user_path))

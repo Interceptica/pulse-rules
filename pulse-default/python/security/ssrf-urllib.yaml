@@ -1,0 +1,47 @@
+id: pulse.python.security.ssrf-urllib
+language: python
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via urllib.
+  Passing user-controlled URLs to urllib.request.urlopen() allows attackers to reach internal
+  services, cloud metadata endpoints (e.g., 169.254.169.254), or file:// URLs.
+  Validate URLs against an allowlist of permitted hosts and schemes before opening.
+rule:
+  any:
+    - pattern: urllib.request.urlopen($URL)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: urllib.request.urlopen($URL)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: urlopen($URL)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      urllib.request.urlopen(user_url)
+    - |
+      urllib.request.urlopen(f"http://{host}/path")
+    - |
+      urlopen(url)
+  negative:
+    - |
+      urllib.request.urlopen("https://api.example.com/data")
+    - |
+      urlopen("https://api.example.com/data")

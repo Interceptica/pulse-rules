@@ -1,0 +1,37 @@
+id: pulse.python.security.hardcoded-token
+language: python
+severity: warning
+message: |
+  Hardcoded token detected.
+  Storing authentication tokens in source code exposes them through version control and
+  code sharing. Leaked tokens allow unauthorized access to APIs and services.
+  Use environment variables (os.environ["TOKEN"]) or a secrets manager.
+rule:
+  pattern: $VAR = $VAL
+  constraints:
+    VAR:
+      regex: "(?i)(token|auth_token|access_token|refresh_token|bearer_token)"
+    VAL:
+      regex: "^[\"']."
+metadata:
+  cwe: ["CWE-798"]
+  owasp: ["A07:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    - |
+      access_token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0"
+    - |
+      AUTH_TOKEN = "xoxb-123456789-abcdef"
+  negative:
+    - |
+      token = os.environ["TOKEN"]
+    - |
+      access_token = get_token()
+    - |
+      token = ""

@@ -1,0 +1,33 @@
+id: pulse.python.security.deserialization-yaml-load
+language: python
+severity: error
+message: |
+  Insecure deserialization via yaml.load() without SafeLoader.
+  yaml.load() with the default Loader can execute arbitrary Python code embedded in YAML.
+  Use yaml.safe_load() or yaml.load(data, Loader=yaml.SafeLoader) instead.
+rule:
+  any:
+    - pattern: yaml.load($ARG)
+    - pattern: yaml.load($ARG, Loader=yaml.FullLoader)
+    - pattern: yaml.load($ARG, Loader=yaml.UnsafeLoader)
+    - pattern: yaml.load($ARG, Loader=yaml.Loader)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      yaml.load(data)
+    - |
+      yaml.load(request.body, Loader=yaml.Loader)
+    - |
+      yaml.load(content, Loader=yaml.UnsafeLoader)
+  negative:
+    - |
+      yaml.safe_load(data)
+    - |
+      yaml.load(data, Loader=yaml.SafeLoader)

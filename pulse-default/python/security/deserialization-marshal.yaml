@@ -1,0 +1,30 @@
+id: pulse.python.security.deserialization-marshal
+language: python
+severity: error
+message: |
+  Insecure deserialization via marshal.loads().
+  The marshal module is not safe for untrusted data. Maliciously crafted marshal data can
+  crash the interpreter or potentially execute arbitrary code.
+  Use safe serialization formats like JSON instead.
+rule:
+  any:
+    - pattern: marshal.loads($ARG)
+    - pattern: marshal.load($ARG)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      marshal.loads(data)
+    - |
+      marshal.load(f)
+  negative:
+    - |
+      json.loads(data)
+    - |
+      marshal.dumps(data)

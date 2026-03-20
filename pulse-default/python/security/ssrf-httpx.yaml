@@ -1,0 +1,48 @@
+id: pulse.python.security.ssrf-httpx
+language: python
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via httpx library.
+  Passing user-controlled URLs to httpx.get/post allows attackers to reach internal services
+  and cloud metadata endpoints.
+  Validate URLs against an allowlist of permitted hosts/schemes before making requests.
+rule:
+  any:
+    - pattern: httpx.get($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: httpx.post($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: httpx.put($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: httpx.delete($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      httpx.get(user_url)
+    - |
+      httpx.post(url, json=data)
+  negative:
+    - |
+      httpx.get("https://api.example.com/data")
+    - |
+      httpx.post("https://api.example.com/submit", json=data)

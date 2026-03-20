@@ -1,0 +1,48 @@
+id: pulse.python.security.open-redirect-flask
+language: python
+severity: error
+message: |
+  Open redirect via Flask redirect() with user-controlled input.
+  Passing user-controlled URLs to redirect() allows attackers to redirect users to malicious
+  sites for phishing or credential theft.
+  Validate redirect URLs against an allowlist or use url_for() for internal redirects.
+  Check with urllib.parse.urlparse() that the scheme and netloc match trusted values.
+rule:
+  any:
+    - pattern: redirect($URL)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: redirect($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: redirect($URL)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+metadata:
+  cwe: ["CWE-601"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      redirect(request.args.get("next"))
+    - |
+      redirect(next_url)
+    - |
+      redirect(f"https://{domain}/callback")
+  negative:
+    - |
+      redirect("/dashboard")
+    - |
+      redirect(url_for("home"))

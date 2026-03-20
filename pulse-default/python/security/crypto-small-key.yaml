@@ -1,0 +1,48 @@
+id: pulse.python.security.crypto-small-key
+language: python
+severity: warning
+message: |
+  RSA key generation with insufficient key size.
+  RSA keys smaller than 2048 bits are considered insecure and can be factored with modern
+  hardware. NIST recommends a minimum of 2048 bits, with 3072+ bits for long-term security.
+  Use a key size of at least 2048 bits: RSA.generate(2048) or rsa.generate_private_key(65537, 2048).
+rule:
+  any:
+    - pattern: RSA.generate($SIZE)
+      constraints:
+        SIZE:
+          regex: "^(512|768|1024)$"
+    - pattern: RSA.generate($SIZE, $$$OPTS)
+      constraints:
+        SIZE:
+          regex: "^(512|768|1024)$"
+    - pattern: rsa.generate_private_key($EXP, $SIZE)
+      constraints:
+        SIZE:
+          regex: "^(512|768|1024)$"
+    - pattern: rsa.generate_private_key($EXP, $SIZE, $$$OPTS)
+      constraints:
+        SIZE:
+          regex: "^(512|768|1024)$"
+metadata:
+  cwe: ["CWE-326"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      key = RSA.generate(1024)
+    - |
+      key = RSA.generate(512)
+    - |
+      key = rsa.generate_private_key(65537, 1024)
+  negative:
+    - |
+      key = RSA.generate(2048)
+    - |
+      key = RSA.generate(4096)
+    - |
+      key = rsa.generate_private_key(65537, 2048)

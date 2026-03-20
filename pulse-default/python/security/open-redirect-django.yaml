@@ -1,0 +1,59 @@
+id: pulse.python.security.open-redirect-django
+language: python
+severity: error
+message: |
+  Open redirect via Django redirect() with user-controlled input.
+  Passing user-controlled URLs to redirect() allows attackers to redirect users to malicious
+  sites, enabling phishing attacks and credential theft.
+  Validate the redirect URL against an allowlist of trusted domains, or use Django's
+  url_has_allowed_host_and_scheme() to verify the destination.
+rule:
+  any:
+    - pattern: redirect($URL)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: redirect($URL)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: HttpResponseRedirect($URL)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: HttpResponseRedirect($URL)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+metadata:
+  cwe: ["CWE-601"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      redirect(request.GET.get("next"))
+    - |
+      redirect(next_url)
+    - |
+      HttpResponseRedirect(user_url)
+    - |
+      redirect(f"https://{domain}/path")
+  negative:
+    - |
+      redirect("/dashboard")
+    - |
+      redirect("home")
+    - |
+      HttpResponseRedirect("/login")

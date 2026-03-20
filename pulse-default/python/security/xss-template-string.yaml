@@ -1,0 +1,66 @@
+id: pulse.python.security.xss-template-string
+language: python
+severity: error
+message: |
+  XSS via Flask render_template_string() with user-controlled input.
+  Passing user-controlled data directly into the template string allows server-side template
+  injection and cross-site scripting.
+  Use render_template() with a file-based template and pass user data as context variables.
+rule:
+  any:
+    - pattern: render_template_string($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: render_template_string($ARG)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: render_template_string($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: render_template_string($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+    - pattern: render_template_string($ARG, $$$KWARGS)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: render_template_string($ARG, $$$KWARGS)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      render_template_string(user_input)
+    - |
+      render_template_string(f"<h1>{title}</h1>")
+    - |
+      render_template_string("<h1>{}</h1>".format(title))
+    - |
+      render_template_string("<h1>" + user_input + "</h1>")
+    - |
+      render_template_string(user_input, name=name)
+  negative:
+    - |
+      render_template_string("<h1>{{ name }}</h1>", name=name)
+    - |
+      render_template("index.html", name=name)

@@ -1,0 +1,37 @@
+id: pulse.python.security.xxe-etree
+language: python
+severity: error
+message: |
+  XML External Entity (XXE) injection via lxml/ElementTree.
+  Parsing user-controlled XML with etree.fromstring() or etree.parse() without disabling
+  external entity resolution allows attackers to read local files, perform SSRF, or cause DoS.
+  Use defusedxml.ElementTree instead, or disable entity resolution:
+  parser = etree.XMLParser(resolve_entities=False, no_network=True).
+rule:
+  any:
+    - pattern: etree.fromstring($ARG)
+    - pattern: etree.parse($ARG)
+    - pattern: etree.fromstring($ARG, $$$OPTS)
+    - pattern: etree.parse($ARG, $$$OPTS)
+    - pattern: ET.fromstring($ARG)
+    - pattern: ET.parse($ARG)
+metadata:
+  cwe: ["CWE-611"]
+  owasp: ["A05:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      etree.fromstring(user_xml)
+    - |
+      etree.parse(xml_file)
+    - |
+      ET.fromstring(request.data)
+  negative:
+    - |
+      defusedxml.ElementTree.fromstring(user_xml)
+    - |
+      etree.fromstring(user_xml, parser=safe_parser)

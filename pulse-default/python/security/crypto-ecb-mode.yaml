@@ -1,0 +1,29 @@
+id: pulse.python.security.crypto-ecb-mode
+language: python
+severity: warning
+message: |
+  Use of AES in ECB mode.
+  ECB mode encrypts identical plaintext blocks to identical ciphertext blocks, leaking patterns
+  in the data. This is insecure for most use cases.
+  Use AES in GCM mode (AES.MODE_GCM) for authenticated encryption, or CBC (AES.MODE_CBC)
+  with a random IV and HMAC for integrity.
+rule:
+  any:
+    - pattern: AES.new($KEY, AES.MODE_ECB)
+    - pattern: AES.new($KEY, AES.MODE_ECB, $$$OPTS)
+metadata:
+  cwe: ["CWE-327"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      cipher = AES.new(key, AES.MODE_ECB)
+  negative:
+    - |
+      cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    - |
+      cipher = AES.new(key, AES.MODE_CBC, iv=iv)

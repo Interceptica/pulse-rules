@@ -1,0 +1,33 @@
+id: pulse.python.security.xxe-minidom
+language: python
+severity: error
+message: |
+  XML External Entity (XXE) injection via minidom.
+  Parsing user-controlled XML with minidom.parseString() or minidom.parse() does not disable
+  external entity resolution by default, allowing file disclosure, SSRF, and DoS.
+  Use defusedxml.minidom instead: defusedxml.minidom.parseString(data).
+rule:
+  any:
+    - pattern: minidom.parseString($ARG)
+    - pattern: minidom.parse($ARG)
+    - pattern: parseString($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-611"]
+  owasp: ["A05:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      minidom.parseString(user_xml)
+    - |
+      minidom.parse(xml_file)
+  negative:
+    - |
+      defusedxml.minidom.parseString(user_xml)

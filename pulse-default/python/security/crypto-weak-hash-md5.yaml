@@ -1,0 +1,32 @@
+id: pulse.python.security.crypto-weak-hash-md5
+language: python
+severity: warning
+message: |
+  Use of weak MD5 hash algorithm.
+  MD5 is cryptographically broken and susceptible to collision attacks. It should not be used
+  for password hashing, digital signatures, or integrity verification.
+  Use hashlib.sha256() or hashlib.sha3_256() for integrity checks, or bcrypt/argon2 for passwords.
+rule:
+  any:
+    - pattern: hashlib.md5($$$ARGS)
+    - pattern: hashlib.new("md5", $$$ARGS)
+metadata:
+  cwe: ["CWE-328"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      hashlib.md5(data)
+    - |
+      hashlib.md5(password.encode())
+    - |
+      hashlib.new("md5", data)
+  negative:
+    - |
+      hashlib.sha256(data)
+    - |
+      hashlib.sha3_256(data)

@@ -1,0 +1,54 @@
+id: pulse.python.security.xss-response-write
+language: python
+severity: error
+message: |
+  XSS via Django HttpResponse() with user-controlled input.
+  Passing user-controlled data directly to HttpResponse() without escaping allows injection
+  of arbitrary HTML/JavaScript into the response.
+  Use django.utils.html.escape() on user input, or use template rendering instead.
+rule:
+  any:
+    - pattern: HttpResponse($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: HttpResponse($ARG)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: HttpResponse($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: HttpResponse($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      HttpResponse(user_input)
+    - |
+      HttpResponse(f"<p>{message}</p>")
+    - |
+      HttpResponse("<p>{}</p>".format(message))
+    - |
+      HttpResponse("<p>" + message + "</p>")
+  negative:
+    - |
+      HttpResponse("OK")
+    - |
+      HttpResponse(status=200)
+    - |
+      render(request, "template.html", {"msg": message})

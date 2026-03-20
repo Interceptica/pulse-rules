@@ -1,0 +1,69 @@
+id: pulse.python.security.ssrf-requests-get
+language: python
+severity: error
+message: |
+  Server-Side Request Forgery (SSRF) via requests library.
+  Passing user-controlled URLs to requests.get/post/put/delete allows attackers to make
+  the server send requests to internal services, cloud metadata endpoints, or other
+  unintended destinations.
+  Validate URLs against an allowlist of permitted hosts/schemes before making requests.
+rule:
+  any:
+    - pattern: requests.get($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          field: arguments.0
+          stopBy: end
+    - pattern: requests.post($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          field: arguments.0
+          stopBy: end
+    - pattern: requests.put($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          field: arguments.0
+          stopBy: end
+    - pattern: requests.delete($URL, $$$OPTS)
+      not:
+        has:
+          kind: string
+          field: arguments.0
+          stopBy: end
+    - pattern: requests.get($URL, $$$OPTS)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: requests.post($URL, $$$OPTS)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+metadata:
+  cwe: ["CWE-918"]
+  owasp: ["A10:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      requests.get(user_url)
+    - |
+      requests.post(url, data=payload)
+    - |
+      requests.get(f"http://{host}/api")
+  negative:
+    - |
+      requests.get("https://api.example.com/data")
+    - |
+      requests.post("https://api.example.com/submit", data=payload)

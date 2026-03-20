@@ -1,0 +1,48 @@
+id: pulse.python.security.xss-format-html
+language: python
+severity: error
+message: |
+  XSS via Django format_html() with pre-interpolated arguments.
+  Using f-strings or .format() inside format_html() defeats its escaping mechanism because
+  the user input is interpolated before format_html can escape it.
+  Pass user data as separate arguments: format_html("<b>{}</b>", user_input).
+rule:
+  any:
+    - pattern: format_html($ARG)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: format_html($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: format_html($ARG, $$$REST)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      format_html(f"<b>{name}</b>")
+    - |
+      format_html("<b>{}</b>".format(name))
+    - |
+      format_html(f"<a href='{url}'>link</a>", extra)
+  negative:
+    - |
+      format_html("<b>{}</b>", name)
+    - |
+      format_html("<br>")

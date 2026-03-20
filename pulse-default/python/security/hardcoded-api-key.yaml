@@ -1,0 +1,37 @@
+id: pulse.python.security.hardcoded-api-key
+language: python
+severity: warning
+message: |
+  Hardcoded API key detected.
+  Storing API keys in source code risks credential exposure through version control, logs,
+  or code sharing. Leaked API keys can lead to unauthorized access and financial loss.
+  Use environment variables (os.environ["API_KEY"]) or a secrets manager.
+rule:
+  pattern: $VAR = $VAL
+  constraints:
+    VAR:
+      regex: "(?i)(api_key|apikey|api_secret|api_token)"
+    VAL:
+      regex: "^[\"']."
+metadata:
+  cwe: ["CWE-798"]
+  owasp: ["A07:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      api_key = "sk-1234567890abcdef"
+    - |
+      API_KEY = "AKIAIOSFODNN7EXAMPLE"
+    - |
+      api_secret = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  negative:
+    - |
+      api_key = os.environ["API_KEY"]
+    - |
+      API_KEY = config.get("api_key")
+    - |
+      api_key = ""

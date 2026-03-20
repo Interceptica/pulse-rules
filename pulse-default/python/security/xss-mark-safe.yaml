@@ -1,0 +1,55 @@
+id: pulse.python.security.xss-mark-safe
+language: python
+severity: error
+message: |
+  XSS via Django mark_safe() with user-controlled input.
+  Passing user-controlled data to mark_safe() bypasses Django's auto-escaping and allows
+  injection of arbitrary HTML/JavaScript into rendered pages.
+  Use django.utils.html.format_html() instead, which escapes arguments while preserving
+  the format string as safe HTML.
+rule:
+  any:
+    - pattern: mark_safe($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+    - pattern: mark_safe($ARG)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: mark_safe($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: mark_safe($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      mark_safe(user_input)
+    - |
+      mark_safe(f"<b>{name}</b>")
+    - |
+      mark_safe("<b>{}</b>".format(name))
+    - |
+      mark_safe("<b>" + user_input + "</b>")
+  negative:
+    - |
+      mark_safe("<br>")
+    - |
+      mark_safe("&copy; 2024")
+    - |
+      format_html("<b>{}</b>", name)

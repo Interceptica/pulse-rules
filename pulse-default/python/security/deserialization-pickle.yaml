@@ -1,0 +1,35 @@
+id: pulse.python.security.deserialization-pickle
+language: python
+severity: error
+message: |
+  Insecure deserialization via pickle.
+  pickle.loads() and pickle.load() execute arbitrary code during deserialization. An attacker
+  who controls the pickled data can achieve remote code execution.
+  Use safe serialization formats like JSON. If pickle is unavoidable, use hmac to verify
+  data integrity and restrict the unpickler with a custom find_class() method.
+rule:
+  any:
+    - pattern: pickle.loads($ARG)
+    - pattern: pickle.load($ARG)
+    - pattern: cPickle.loads($ARG)
+    - pattern: cPickle.load($ARG)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      pickle.loads(data)
+    - |
+      pickle.load(open("data.pkl", "rb"))
+    - |
+      cPickle.loads(request.data)
+  negative:
+    - |
+      json.loads(data)
+    - |
+      pickle.dumps(data)

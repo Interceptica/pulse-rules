@@ -1,0 +1,35 @@
+id: pulse.python.security.crypto-weak-random
+language: python
+severity: warning
+message: |
+  Use of non-cryptographic random number generator for potentially security-sensitive purposes.
+  The random module uses a Mersenne Twister PRNG that is predictable and must not be used for
+  generating tokens, passwords, nonces, or other security-sensitive values.
+  Use secrets.token_hex(), secrets.token_urlsafe(), or os.urandom() instead.
+rule:
+  any:
+    - pattern: random.random()
+    - pattern: random.randint($$$ARGS)
+    - pattern: random.choice($$$ARGS)
+    - pattern: random.randrange($$$ARGS)
+    - pattern: random.getrandbits($$$ARGS)
+metadata:
+  cwe: ["CWE-330"]
+  owasp: ["A02:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      token = random.random()
+    - |
+      otp = random.randint(100000, 999999)
+    - |
+      char = random.choice(string.ascii_letters)
+  negative:
+    - |
+      secrets.token_hex(32)
+    - |
+      os.urandom(16)
