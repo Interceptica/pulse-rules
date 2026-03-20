@@ -1,0 +1,52 @@
+id: pulse.python.security.cmd-injection-os-popen
+language: python
+severity: error
+message: |
+  OS command injection via os.popen().
+  Passing user-controlled data to os.popen() allows arbitrary command execution on the host.
+  Use subprocess.run() with a list of arguments (without shell=True) instead, and validate all inputs.
+rule:
+  any:
+    - pattern: os.popen($ARG)
+      has:
+        kind: interpolation
+        stopBy: end
+    - pattern: os.popen($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+    - pattern: os.popen($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: os.popen($ARG)
+      has:
+        pattern: $STR % $VAL
+        stopBy: end
+    - pattern: os.popen($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.popen(f"ls {user_input}")
+    - |
+      os.popen("cat " + filename)
+    - |
+      os.popen(user_input)
+    - |
+      os.popen("ping {}".format(host))
+  negative:
+    - |
+      os.popen("ls -la /tmp")
+    - |
+      subprocess.run(["ls", "-la"])

@@ -1,0 +1,55 @@
+id: pulse.python.security.cmd-injection-subprocess-shell
+language: python
+severity: error
+message: |
+  OS command injection via subprocess with shell=True.
+  Passing user-controlled data to subprocess.call/run/Popen with shell=True allows arbitrary command execution.
+  Use a list of arguments without shell=True instead: subprocess.run(["cmd", arg1, arg2]).
+rule:
+  any:
+    - pattern: subprocess.call($$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.run($$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.Popen($$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.check_output($$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.check_call($$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      subprocess.call("ls " + user_input, shell=True)
+    - |
+      subprocess.run(f"grep {pattern} file.txt", shell=True)
+    - |
+      subprocess.Popen(cmd, shell=True)
+    - |
+      subprocess.check_output("cat " + filename, shell=True)
+    - |
+      subprocess.check_call(f"rm {path}", shell=True)
+  negative:
+    - |
+      subprocess.run(["ls", "-la", path])
+    - |
+      subprocess.call(["grep", pattern, "file.txt"])
+    - |
+      subprocess.Popen(["cat", filename])

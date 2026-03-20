@@ -1,0 +1,54 @@
+id: pulse.python.security.cmd-injection-os-system
+language: python
+severity: error
+message: |
+  OS command injection via os.system().
+  Passing user-controlled data to os.system() allows arbitrary command execution on the host.
+  Use subprocess.run() with a list of arguments (without shell=True) instead, and validate all inputs.
+rule:
+  any:
+    - pattern: os.system($ARG)
+      has:
+        kind: interpolation
+        stopBy: end
+    - pattern: os.system($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+    - pattern: os.system($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: os.system($ARG)
+      has:
+        pattern: $STR % $VAL
+        stopBy: end
+    - pattern: os.system($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.system(f"ls {user_input}")
+    - |
+      os.system("rm " + filename)
+    - |
+      os.system(user_input)
+    - |
+      os.system("ping {}".format(host))
+    - |
+      os.system("cat %s" % path)
+  negative:
+    - |
+      os.system("ls -la /tmp")
+    - |
+      subprocess.run(["ls", "-la"])

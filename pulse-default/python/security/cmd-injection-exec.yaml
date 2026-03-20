@@ -1,0 +1,49 @@
+id: pulse.python.security.cmd-injection-exec
+language: python
+severity: error
+message: |
+  Code injection via exec().
+  Passing user-controlled data to exec() allows arbitrary Python code execution.
+  Avoid exec() entirely. Restructure the code to use safe alternatives such as
+  dictionaries for dispatch, importlib for dynamic imports, or ast.literal_eval() for literals.
+rule:
+  any:
+    - pattern: exec($ARG)
+      has:
+        kind: interpolation
+        stopBy: end
+    - pattern: exec($ARG)
+      has:
+        kind: binary_operator
+        stopBy: end
+    - pattern: exec($ARG)
+      has:
+        pattern: $STR.format($$$FMT_ARGS)
+        stopBy: end
+    - pattern: exec($ARG)
+      not:
+        has:
+          kind: string
+          stopBy: end
+metadata:
+  cwe: ["CWE-94"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      exec(user_input)
+    - |
+      exec(f"import {module_name}")
+    - |
+      exec("print(" + user_code + ")")
+    - |
+      exec("x = {}".format(value))
+  negative:
+    - |
+      exec("print('hello')")
+    - |
+      exec(compile(ast_tree, "<string>", "exec"))

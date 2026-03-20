@@ -1,0 +1,35 @@
+id: pulse.python.security.cmd-injection-pickle-loads
+language: python
+severity: error
+message: |
+  Insecure deserialization via pickle.loads().
+  Deserializing untrusted data with pickle allows arbitrary code execution through crafted payloads.
+  Use safe serialization formats such as JSON, or use a restricted unpickler with an explicit allow-list of classes.
+rule:
+  any:
+    - pattern: pickle.loads($ARG)
+    - pattern: pickle.load($ARG)
+    - pattern: cPickle.loads($ARG)
+    - pattern: cPickle.load($ARG)
+metadata:
+  cwe: ["CWE-502"]
+  owasp: ["A08:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      pickle.loads(user_data)
+    - |
+      pickle.load(open("untrusted.pkl", "rb"))
+    - |
+      obj = pickle.loads(request.body)
+    - |
+      cPickle.loads(data)
+  negative:
+    - |
+      json.loads(user_data)
+    - |
+      yaml.safe_load(data)
