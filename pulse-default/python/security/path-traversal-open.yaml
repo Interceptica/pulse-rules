@@ -1,0 +1,60 @@
+id: pulse.python.security.path-traversal-open
+language: python
+severity: error
+message: |
+  Path traversal via open() with user-controlled input.
+  Passing unsanitized user input to open() allows attackers to read or write arbitrary files
+  using ../ sequences (e.g., ../../etc/passwd).
+  REMEDIATION: Validate and sanitize file paths. Use os.path.realpath() and verify the resolved
+  path starts with the expected base directory.
+rule:
+  any:
+    - pattern: open($PATH)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: open($PATH, $MODE)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: open($PATH)
+      has:
+        kind: binary_operator
+        regex: "\\+"
+        stopBy: end
+    - pattern: open($PATH, $MODE)
+      has:
+        kind: binary_operator
+        regex: "\\+"
+        stopBy: end
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      data = open(f"/uploads/{filename}")
+    - |
+      data = open(f"{base_dir}/{user_input}", "r")
+    - |
+      f = open("/var/data/" + user_path)
+    - |
+      f = open(directory + "/" + filename, "rb")
+  negative:
+    - |
+      f = open("config.yaml")
+    - |
+      f = open("/etc/hosts", "r")
+    - |
+      safe_path = os.path.realpath(user_input)
+      f = open(safe_path)

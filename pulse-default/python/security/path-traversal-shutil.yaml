@@ -1,0 +1,85 @@
+id: pulse.python.security.path-traversal-shutil
+language: python
+severity: error
+message: |
+  Path traversal via shutil file operation with dynamic path.
+  Passing unsanitized user input to shutil.copy(), shutil.move(), shutil.copytree(), or
+  shutil.rmtree() can allow attackers to copy, move, or delete arbitrary files and directories.
+  REMEDIATION: Validate and sanitize file paths. Use os.path.realpath() and verify the resolved
+  path starts with the expected base directory before passing to shutil operations.
+rule:
+  any:
+    - pattern: shutil.copy($SRC, $DST)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: shutil.copy2($SRC, $DST)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: shutil.move($SRC, $DST)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: shutil.copytree($SRC, $DST)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: shutil.rmtree($PATH)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      shutil.copy(f"/uploads/{filename}", "/backup/")
+    - |
+      shutil.move("/tmp/" + user_file, destination)
+    - |
+      shutil.rmtree(f"/data/{user_dir}")
+    - |
+      shutil.copytree(base + "/" + dirname, target)
+  negative:
+    - |
+      shutil.copy("config.yaml", "/backup/config.yaml")
+    - |
+      shutil.rmtree("/tmp/build_artifacts")
+    - |
+      shutil.move("old_name.txt", "new_name.txt")

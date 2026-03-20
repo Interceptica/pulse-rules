@@ -1,0 +1,34 @@
+id: pulse.python.security.path-traversal-os-path-join
+language: python
+severity: error
+message: |
+  Path traversal via os.path.join() with user-controlled input.
+  os.path.join() does not sanitize ../ sequences, so an attacker can escape the intended base
+  directory. Additionally, if a component is an absolute path, all previous components are
+  discarded (e.g., os.path.join("/safe", "/etc/passwd") returns "/etc/passwd").
+  REMEDIATION: Validate and sanitize file paths. Use os.path.realpath() on the joined result and
+  verify the resolved path starts with the expected base directory.
+rule:
+  pattern: os.path.join($BASE, $$$PARTS)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      filepath = os.path.join(UPLOAD_DIR, request.args.get("file"))
+    - |
+      path = os.path.join("/var/data", user_input)
+    - |
+      full = os.path.join(base_dir, subdir, filename)
+  negative:
+    - |
+      path = os.path.join("src", "utils", "helpers.py")
+    - |
+      safe = os.path.realpath(os.path.join(base, user_input))
+      if safe.startswith(base):
+          pass

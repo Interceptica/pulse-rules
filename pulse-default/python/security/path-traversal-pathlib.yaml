@@ -1,0 +1,58 @@
+id: pulse.python.security.path-traversal-pathlib
+language: python
+severity: error
+message: |
+  Path traversal via pathlib.Path() with user-controlled input.
+  Constructing a Path object from unsanitized user input allows attackers to access arbitrary
+  files using ../ sequences. Subsequent operations like read_text(), read_bytes(), write_text(),
+  open(), or unlink() will act on the attacker-controlled path.
+  REMEDIATION: Validate and sanitize file paths. Use Path.resolve() and verify the resolved path
+  starts with the expected base directory (e.g., resolved.is_relative_to(base_dir)).
+rule:
+  any:
+    - pattern: Path($ARG)
+      has:
+        kind: formatted_string
+        has:
+          kind: interpolation
+          stopBy: end
+        stopBy: end
+    - pattern: Path($ARG)
+      has:
+        kind: binary_operator
+        regex: "\\+"
+        stopBy: end
+    - pattern: Path($BASE, $$$PARTS)
+    - pattern: Path($ARG) / $SEGMENT
+    - pattern: Path($ARG).$METHOD($$$ARGS)
+      constraints:
+        METHOD:
+          regex: "^(read_text|read_bytes|write_text|write_bytes|open|unlink|rmdir|mkdir)$"
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      content = Path(f"/data/{user_file}").read_text()
+    - |
+      p = Path("/uploads/" + filename)
+    - |
+      p = Path(base_dir, user_input)
+    - |
+      data = Path(user_path).read_bytes()
+    - |
+      target = Path("/data") / user_input
+  negative:
+    - |
+      config = Path("config.yaml").read_text()
+    - |
+      p = Path("/etc/hosts")
+    - |
+      resolved = Path(user_input).resolve()
+      if resolved.is_relative_to(base_dir):
+          pass

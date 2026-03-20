@@ -1,0 +1,78 @@
+id: pulse.python.security.path-traversal-send-file
+language: python
+severity: error
+message: |
+  Path traversal via Flask send_file() or send_from_directory() with user-controlled input.
+  Passing unsanitized user input to send_file() allows attackers to download arbitrary files from
+  the server. send_from_directory() is safer but still vulnerable if the filename argument
+  contains ../ sequences and is not validated.
+  REMEDIATION: Validate and sanitize file paths. Use os.path.realpath() and verify the resolved
+  path starts with the expected base directory. For send_from_directory(), use
+  werkzeug.utils.secure_filename() on the filename argument.
+rule:
+  any:
+    - pattern: send_file($PATH)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: send_file($PATH, $$$OPTS)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: send_from_directory($DIR, $FILENAME)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+    - pattern: send_from_directory($DIR, $FILENAME, $$$OPTS)
+      has:
+        any:
+          - kind: formatted_string
+            has:
+              kind: interpolation
+              stopBy: end
+          - kind: binary_operator
+            regex: "\\+"
+        stopBy: end
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      return send_file(f"/uploads/{filename}")
+    - |
+      return send_file("/data/" + user_path, as_attachment=True)
+    - |
+      return send_from_directory("/uploads", f"{user_input}.pdf")
+    - |
+      return send_from_directory(upload_dir, prefix + filename)
+  negative:
+    - |
+      return send_file("static/logo.png")
+    - |
+      safe_name = secure_filename(filename)
+      return send_from_directory("/uploads", safe_name)
+    - |
+      return send_file("/static/report.pdf", as_attachment=True)
