@@ -1,0 +1,37 @@
+id: pulse.typescript.security.input-validation-no-sanitize
+language: typescript
+severity: warning
+message: |
+  Unsanitized use of Express request input in application logic.
+  Using req.query, req.body, or req.params values directly without validation or sanitization
+  may allow injection attacks or unexpected behavior.
+  Use a validation library like express-validator, joi, or zod to validate and sanitize all
+  request inputs before use.
+rule:
+  any:
+    - pattern: req.query.$PROP
+    - pattern: req.body.$PROP
+    - pattern: req.params.$PROP
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      const name = req.query.name;
+      db.find({ name: name });
+    - |
+      processOrder(req.body.orderId);
+    - |
+      const userId = req.params.id;
+  negative:
+    - |
+      const { name } = req.query;
+      const validated = validator.escape(name);
+    - |
+      const schema = Joi.object({ name: Joi.string().max(100) });
+      const { value } = schema.validate(req.body);
