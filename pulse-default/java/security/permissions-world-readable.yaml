@@ -1,0 +1,31 @@
+id: pulse.java.security.permissions-world-readable
+language: java
+severity: error
+message: |
+  File permissions set to world-readable via setReadable(true, false).
+  Calling setReadable(true, false) makes the file readable by all users on the system,
+  which may expose sensitive data to unauthorized users.
+  Use setReadable(true, true) to restrict read access to the file owner only.
+rule:
+  any:
+    - pattern: new File($PATH).setReadable(true, false)
+    - pattern: $FILE.setReadable(true, false)
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      new File("/tmp/secret.conf").setReadable(true, false);
+    - |
+      File configFile = new File("/etc/app.conf");
+      configFile.setReadable(true, false);
+  negative:
+    - |
+      new File("/tmp/secret.conf").setReadable(true, true);
+    - |
+      configFile.setReadable(true, true);

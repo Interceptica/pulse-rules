@@ -1,0 +1,32 @@
+id: pulse.javascript.security.permissions-write-insecure-mode
+language: javascript
+severity: error
+message: |
+  File written with world-writable permissions (mode: 0o777) via fs.writeFile.
+  Writing files with mode 0o777 allows any user on the system to read, write, and execute
+  the file, which can lead to unauthorized modification or data leakage.
+  Use restrictive permissions such as 0o600 or 0o644 in the options object.
+rule:
+  any:
+    - pattern: fs.writeFile($PATH, $DATA, { mode: 0o777 }, $$$CB)
+    - pattern: fs.writeFileSync($PATH, $DATA, { mode: 0o777 })
+    - pattern: fs.writeFile($PATH, $DATA, { $$$OPTS, mode: 0o777, $$$REST }, $$$CB)
+    - pattern: fs.writeFileSync($PATH, $DATA, { $$$OPTS, mode: 0o777, $$$REST })
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      fs.writeFile("/tmp/config.json", data, { mode: 0o777 }, callback);
+    - |
+      fs.writeFileSync("/tmp/config.json", data, { mode: 0o777 });
+  negative:
+    - |
+      fs.writeFile("/tmp/config.json", data, { mode: 0o600 }, callback);
+    - |
+      fs.writeFileSync("/tmp/config.json", data, { mode: 0o644 });

@@ -1,0 +1,32 @@
+id: pulse.java.security.privilege-doasprivileged
+language: java
+severity: warning
+message: |
+  Privilege escalation via AccessController.doPrivileged().
+  Using AccessController.doPrivileged() bypasses the normal Java security manager permission
+  checks, allowing code to perform operations it would not normally be authorized to do.
+  Minimize the code within the privileged block and validate all inputs before entering it.
+  Consider whether the privileged operation is truly necessary.
+rule:
+  pattern: AccessController.doPrivileged($$$ARGS)
+metadata:
+  cwe: ["CWE-269"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      AccessController.doPrivileged(new PrivilegedAction<Void>() {
+          public Void run() {
+              System.loadLibrary("native");
+              return null;
+          }
+      });
+    - |
+      AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("user.home"));
+  negative:
+    - |
+      System.getProperty("user.home");

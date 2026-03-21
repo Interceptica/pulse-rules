@@ -1,0 +1,47 @@
+id: pulse.javascript.security.auth-no-auth-header-check
+language: javascript
+severity: warning
+message: |
+  Express route handler accesses sensitive data without checking the Authorization header.
+  Routes that access databases, internal services, or user data without verifying
+  req.headers.authorization may allow unauthenticated access to protected resources.
+  Add authentication middleware or check req.headers.authorization before processing the request.
+rule:
+  any:
+    - pattern: |
+        $APP.get($PATH, function($REQ, $RES) { $$$BODY })
+    - pattern: |
+        $APP.post($PATH, function($REQ, $RES) { $$$BODY })
+    - pattern: |
+        $APP.put($PATH, function($REQ, $RES) { $$$BODY })
+    - pattern: |
+        $APP.delete($PATH, function($REQ, $RES) { $$$BODY })
+    - pattern: |
+        $APP.get($PATH, ($REQ, $RES) => { $$$BODY })
+    - pattern: |
+        $APP.post($PATH, ($REQ, $RES) => { $$$BODY })
+    - pattern: |
+        $APP.put($PATH, ($REQ, $RES) => { $$$BODY })
+    - pattern: |
+        $APP.delete($PATH, ($REQ, $RES) => { $$$BODY })
+metadata:
+  cwe: ["CWE-306"]
+  owasp: ["A07:2021"]
+  pulse.confidence: LOW
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      app.get('/api/users', (req, res) => { res.json(db.getUsers()) })
+    - |
+      app.post('/api/data', function(req, res) { db.save(req.body) })
+  negative:
+    - |
+      app.get('/api/users', authMiddleware, (req, res) => { res.json(db.getUsers()) })
+    - |
+      app.get('/api/users', (req, res) => {
+        if (!req.headers.authorization) return res.status(401).send('Unauthorized');
+        res.json(db.getUsers());
+      })

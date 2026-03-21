@@ -1,0 +1,38 @@
+id: pulse.python.security.auth-missing-csrf-exempt
+language: python
+severity: warning
+message: |
+  Django view decorated with @csrf_exempt disables CSRF protection.
+  Using @csrf_exempt on state-changing views (POST, PUT, DELETE) removes a critical authentication
+  safeguard, allowing cross-site request forgery attacks against your users.
+  Remove @csrf_exempt and use Django's built-in CSRF token mechanism, or use a proper API
+  authentication scheme such as token-based authentication.
+rule:
+  pattern: |
+    @csrf_exempt
+    def $FUNC($$$PARAMS):
+        $$$BODY
+metadata:
+  cwe: ["CWE-306"]
+  owasp: ["A07:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      @csrf_exempt
+      def submit_payment(request):
+          process_payment(request.POST)
+          return HttpResponse("OK")
+  negative:
+    - |
+      def submit_payment(request):
+          process_payment(request.POST)
+          return HttpResponse("OK")
+    - |
+      @login_required
+      def submit_payment(request):
+          process_payment(request.POST)
+          return HttpResponse("OK")

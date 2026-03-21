@@ -1,0 +1,35 @@
+id: pulse.python.security.race-condition-toctou
+language: python
+severity: warning
+message: |
+  Time-of-check-time-of-use (TOCTOU) race condition detected.
+  Checking file existence with os.path.exists() before opening it creates a race condition
+  where the file state can change between the check and the use, potentially leading to
+  security vulnerabilities or unexpected behavior.
+  Use a try/except block with open() directly, or use os.open() with appropriate flags
+  to atomically check and open the file.
+rule:
+  pattern: |
+    os.path.exists($PATH)
+    $$$MIDDLE
+    open($PATH, $$$ARGS)
+metadata:
+  cwe: ["CWE-362"]
+  owasp: ["A04:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      if os.path.exists(filepath):
+          f = open(filepath, 'r')
+          data = f.read()
+  negative:
+    - |
+      try:
+          f = open(filepath, 'r')
+          data = f.read()
+      except FileNotFoundError:
+          pass

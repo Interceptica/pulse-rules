@@ -1,0 +1,33 @@
+id: pulse.go.security.race-condition-goroutine-shared
+language: go
+severity: warning
+message: |
+  Potential data race: goroutine writes to a variable without synchronization.
+  Writing to a shared variable from a goroutine without a mutex or other synchronization
+  mechanism can cause data races, leading to corrupted state or unpredictable behavior.
+  Use sync.Mutex, sync.RWMutex, or channels to synchronize access to shared variables.
+rule:
+  pattern: |
+    go func() { $$$BODY $VAR = $VAL $$$REST }()
+metadata:
+  cwe: ["CWE-362"]
+  owasp: ["A04:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      go func() { counter = counter + 1 }()
+    - |
+      go func() { result = computeValue() }()
+  negative:
+    - |
+      go func() {
+          mu.Lock()
+          counter = counter + 1
+          mu.Unlock()
+      }()
+    - |
+      ch <- computeValue()

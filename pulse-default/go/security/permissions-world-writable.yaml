@@ -1,0 +1,35 @@
+id: pulse.go.security.permissions-world-writable
+language: go
+severity: error
+message: |
+  File permissions set to world-writable (0777).
+  Setting world-writable permissions allows any user on the system to read, write, and execute
+  the file, which can lead to unauthorized modification or data leakage.
+  Use restrictive permissions such as 0600 (owner read/write) or 0644 (owner read/write, others read-only).
+rule:
+  any:
+    - pattern: os.Chmod($PATH, 0777)
+    - pattern: os.OpenFile($PATH, $FLAGS, 0777)
+    - pattern: os.WriteFile($PATH, $DATA, 0777)
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      os.Chmod("/tmp/secret.txt", 0777)
+    - |
+      os.OpenFile("/tmp/data.txt", os.O_CREATE|os.O_WRONLY, 0777)
+    - |
+      os.WriteFile("/tmp/config.json", data, 0777)
+  negative:
+    - |
+      os.Chmod("/tmp/secret.txt", 0600)
+    - |
+      os.OpenFile("/tmp/data.txt", os.O_CREATE|os.O_WRONLY, 0644)
+    - |
+      os.WriteFile("/tmp/config.json", data, 0600)

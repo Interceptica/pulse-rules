@@ -1,0 +1,28 @@
+id: pulse.python.security.auth-debug-true-production
+language: python
+severity: error
+message: |
+  Django DEBUG is set to True, which should never be used in production.
+  Running with DEBUG = True exposes detailed error pages with stack traces, SQL queries, and
+  environment variables to end users. It also disables certain security features.
+  Set DEBUG = False in production and use proper logging for error tracking.
+rule:
+  pattern: DEBUG = True
+metadata:
+  cwe: ["CWE-306"]
+  owasp: ["A05:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      DEBUG = True
+      ALLOWED_HOSTS = ['*']
+  negative:
+    - |
+      DEBUG = False
+      ALLOWED_HOSTS = ['example.com']
+    - |
+      DEBUG = os.environ.get('DEBUG', False)

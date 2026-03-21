@@ -1,0 +1,33 @@
+id: pulse.java.security.race-condition-check-then-act
+language: java
+severity: warning
+message: |
+  Time-of-check-time-of-use (TOCTOU) race condition on file operations.
+  Checking file existence with exists() before performing delete() or createNewFile() creates
+  a race condition where the file state can change between the check and the action.
+  Use atomic file operations such as Files.deleteIfExists() or Files.createFile() which
+  perform the check and action atomically.
+rule:
+  any:
+    - pattern: |
+        if ($FILE.exists()) { $$$BODY1 $FILE.delete(); $$$BODY2 }
+    - pattern: |
+        if (!$FILE.exists()) { $$$BODY1 $FILE.createNewFile(); $$$BODY2 }
+metadata:
+  cwe: ["CWE-362"]
+  owasp: ["A04:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      if (file.exists()) { file.delete(); }
+    - |
+      if (!file.exists()) { file.createNewFile(); }
+  negative:
+    - |
+      Files.deleteIfExists(file.toPath());
+    - |
+      try { Files.createFile(path); } catch (FileAlreadyExistsException e) { }

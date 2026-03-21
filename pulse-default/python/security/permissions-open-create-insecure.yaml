@@ -1,0 +1,26 @@
+id: pulse.python.security.permissions-open-create-insecure
+language: python
+severity: warning
+message: |
+  File created with os.open() using overly permissive mode (0o777).
+  Creating files with world-writable permissions allows any user on the system to read, write,
+  and execute the file, potentially leading to data tampering or code execution.
+  Use restrictive permissions such as 0o600 or 0o644 when creating files with os.open().
+rule:
+  pattern: os.open($FILE, os.O_CREAT, 0o777)
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      fd = os.open("/tmp/data.txt", os.O_CREAT, 0o777)
+  negative:
+    - |
+      fd = os.open("/tmp/data.txt", os.O_CREAT, 0o600)
+    - |
+      fd = os.open("/tmp/data.txt", os.O_CREAT, 0o644)

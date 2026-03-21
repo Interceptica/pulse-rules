@@ -1,0 +1,30 @@
+id: pulse.java.security.auth-no-authentication
+language: java
+severity: error
+message: |
+  Spring Security configured to permit all requests without authentication.
+  Using anyRequest().permitAll() disables authentication for all endpoints, allowing
+  unauthenticated users to access any resource in the application.
+  Use anyRequest().authenticated() or configure specific access rules per endpoint.
+rule:
+  any:
+    - pattern: $HTTP.authorizeRequests().anyRequest().permitAll()
+    - pattern: $HTTP.authorizeHttpRequests().anyRequest().permitAll()
+metadata:
+  cwe: ["CWE-306"]
+  owasp: ["A07:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      http.authorizeRequests().anyRequest().permitAll();
+    - |
+      http.authorizeHttpRequests().anyRequest().permitAll();
+  negative:
+    - |
+      http.authorizeRequests().anyRequest().authenticated();
+    - |
+      http.authorizeHttpRequests().anyRequest().hasRole("USER");

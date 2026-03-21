@@ -1,0 +1,32 @@
+id: pulse.python.security.privilege-os-setuid
+language: python
+severity: error
+message: |
+  Process privileges escalated to root via os.setuid(0) or os.setgid(0).
+  Setting the user or group ID to 0 (root) gives the process full system privileges,
+  which violates the principle of least privilege and increases the blast radius of any
+  vulnerability in the application.
+  Run the application as a non-root user. If elevated privileges are temporarily needed,
+  drop them immediately after the privileged operation.
+rule:
+  any:
+    - pattern: os.setuid(0)
+    - pattern: os.setgid(0)
+metadata:
+  cwe: ["CWE-269"]
+  owasp: ["A04:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      os.setuid(0)
+    - |
+      os.setgid(0)
+  negative:
+    - |
+      os.setuid(1000)
+    - |
+      os.setgid(1000)

@@ -1,0 +1,35 @@
+id: pulse.java.security.race-condition-singleton-notsync
+language: java
+severity: warning
+message: |
+  Potential race condition in singleton pattern without proper synchronization.
+  Checking if an instance is null without using synchronized or volatile can lead to multiple
+  threads creating separate instances, violating the singleton contract and potentially causing
+  data corruption or inconsistent state.
+  Use the volatile keyword on the instance field and synchronized blocks, or use an enum-based
+  singleton or static holder pattern.
+rule:
+  pattern: |
+    if ($INSTANCE == null) {
+        $$$BODY
+    }
+metadata:
+  cwe: ["CWE-362"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      if (instance == null) {
+          instance = new Singleton();
+      }
+  negative:
+    - |
+      synchronized (Singleton.class) {
+          if (instance == null) {
+              instance = new Singleton();
+          }
+      }

@@ -1,0 +1,27 @@
+id: pulse.java.security.permissions-temp-file-insecure
+language: java
+severity: warning
+message: |
+  Temporary file created with File.createTempFile() without restricting permissions.
+  File.createTempFile() may create files with default permissions that are readable by other users
+  on the system, potentially exposing sensitive temporary data.
+  Use Files.createTempFile() with restrictive PosixFilePermissions, or explicitly set permissions
+  after creation.
+rule:
+  pattern: File.createTempFile($$$ARGS)
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      File temp = File.createTempFile("prefix", ".tmp");
+    - |
+      File temp = File.createTempFile("data", ".csv", new File("/tmp"));
+  negative:
+    - |
+      Path temp = Files.createTempFile("prefix", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));

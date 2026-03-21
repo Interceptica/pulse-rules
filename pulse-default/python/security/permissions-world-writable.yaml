@@ -1,0 +1,30 @@
+id: pulse.python.security.permissions-world-writable
+language: python
+severity: error
+message: |
+  File permissions set to world-writable (0o777 or 0o766).
+  Setting world-writable permissions allows any user on the system to read, write, and execute
+  the file, which can lead to unauthorized modification or data leakage.
+  Use restrictive permissions such as 0o600 (owner read/write) or 0o644 (owner read/write, others read-only).
+rule:
+  any:
+    - pattern: os.chmod($PATH, 0o777)
+    - pattern: os.chmod($PATH, 0o766)
+metadata:
+  cwe: ["CWE-276"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      os.chmod("/tmp/secret.txt", 0o777)
+    - |
+      os.chmod(config_path, 0o766)
+  negative:
+    - |
+      os.chmod("/tmp/secret.txt", 0o600)
+    - |
+      os.chmod(config_path, 0o644)

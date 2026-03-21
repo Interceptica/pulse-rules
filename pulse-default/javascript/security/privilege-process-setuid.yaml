@@ -1,0 +1,32 @@
+id: pulse.javascript.security.privilege-process-setuid
+language: javascript
+severity: error
+message: |
+  Process privileges escalated to root via process.setuid(0) or process.setgid(0).
+  Setting the user or group ID to 0 (root) gives the Node.js process full system privileges,
+  which violates the principle of least privilege and increases the blast radius of any
+  vulnerability in the application.
+  Run the application as a non-root user. If elevated privileges are temporarily needed,
+  drop them immediately after the privileged operation.
+rule:
+  any:
+    - pattern: process.setuid(0)
+    - pattern: process.setgid(0)
+metadata:
+  cwe: ["CWE-269"]
+  owasp: ["A04:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      process.setuid(0);
+    - |
+      process.setgid(0);
+  negative:
+    - |
+      process.setuid(1000);
+    - |
+      process.setgid(1000);
