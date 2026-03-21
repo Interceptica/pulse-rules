@@ -1,0 +1,32 @@
+id: pulse.typescript.security.file-upload-dangerous-path
+language: typescript
+severity: error
+message: |
+  Uploaded file original name used directly in filesystem operations.
+  Using req.file.originalname directly in fs.writeFile, fs.rename, or path construction allows
+  path traversal and storage of files with dangerous extensions.
+  Sanitize the filename by stripping directory components and validating the extension.
+rule:
+  any:
+    - pattern: $REQ.file.originalname
+    - pattern: $REQ.files[$IDX].originalname
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      fs.writeFileSync(path.join(uploadDir, req.file.originalname), data)
+    - |
+      const name = req.file.originalname
+    - |
+      const filename = req.files[0].originalname
+  negative:
+    - |
+      const name = path.basename(sanitize(req.file.originalname))
+    - |
+      const size = req.file.size

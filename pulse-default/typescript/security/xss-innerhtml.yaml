@@ -1,0 +1,29 @@
+id: pulse.typescript.security.xss-innerhtml
+language: typescript
+severity: error
+message: |
+  Cross-site scripting (XSS) via innerHTML assignment.
+  Assigning user-controlled data to innerHTML renders it as HTML, allowing script injection.
+  Use textContent or innerText for text-only content, or sanitize HTML with a library like DOMPurify.
+rule:
+  pattern: $EL.innerHTML = $INPUT
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      element.innerHTML = userInput
+    - |
+      document.getElementById("output").innerHTML = data
+    - |
+      el.innerHTML = `<div>${content}</div>`
+  negative:
+    - |
+      element.textContent = userInput
+    - |
+      element.innerText = data

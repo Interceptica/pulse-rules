@@ -1,0 +1,28 @@
+id: pulse.typescript.security.sql-injection-mongoose-where
+language: typescript
+severity: error
+message: |
+  NoSQL injection via $where operator in Mongoose query.
+  The $where operator evaluates JavaScript expressions on the server, allowing injection
+  when user-controlled data is passed.
+  Use standard MongoDB query operators instead of $where.
+rule:
+  pattern: "$MODEL.find({ $where: $INPUT })"
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      User.find({ $where: userInput })
+    - |
+      Model.find({ $where: `this.name == '${name}'` })
+  negative:
+    - |
+      User.find({ name: userName })
+    - |
+      User.find({ age: { $gt: 18 } })

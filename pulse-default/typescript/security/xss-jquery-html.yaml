@@ -1,0 +1,29 @@
+id: pulse.typescript.security.xss-jquery-html
+language: typescript
+severity: error
+message: |
+  Cross-site scripting (XSS) via jQuery .html() method.
+  Passing user-controlled data to jQuery's .html() renders it as HTML, allowing script injection.
+  Use .text() for text-only content, or sanitize HTML before inserting it.
+rule:
+  pattern: $($SEL).html($INPUT)
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      $("#output").html(userInput)
+    - |
+      $(".content").html(data)
+    - |
+      $(selector).html("<div>" + input + "</div>")
+  negative:
+    - |
+      $("#output").text(userInput)
+    - |
+      $(".content").text(data)

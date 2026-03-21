@@ -1,0 +1,34 @@
+id: pulse.typescript.security.prototype-pollution-merge
+language: typescript
+severity: error
+message: |
+  Prototype pollution via deep merge operation.
+  Passing user-controlled data to a deep merge function allows attackers to inject properties
+  into Object.prototype via __proto__ or constructor.prototype keys, affecting all objects.
+  Validate input keys and reject __proto__, constructor, and prototype before merging.
+rule:
+  any:
+    - pattern: merge($TARGET, $INPUT)
+    - pattern: deepMerge($TARGET, $INPUT)
+    - pattern: extend(true, $TARGET, $INPUT)
+    - pattern: $.extend(true, $TARGET, $INPUT)
+metadata:
+  cwe: ["CWE-1321"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      merge(config, userInput)
+    - |
+      deepMerge(defaults, req.body)
+    - |
+      $.extend(true, target, userInput)
+  negative:
+    - |
+      Object.assign({}, safeDefaults)
+    - |
+      { ...defaults, ...safeOverrides }

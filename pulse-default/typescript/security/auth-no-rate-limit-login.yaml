@@ -1,0 +1,36 @@
+id: pulse.typescript.security.auth-no-rate-limit-login
+language: typescript
+severity: warning
+message: |
+  Login endpoint without rate limiting.
+  A login or authentication route without rate-limiting middleware is vulnerable to
+  brute-force and credential stuffing attacks.
+  Apply rate limiting middleware to login endpoints using express-rate-limit or a similar library.
+rule:
+  any:
+    - pattern: $APP.post('/login', $HANDLER)
+    - pattern: $APP.post('/auth/login', $HANDLER)
+    - pattern: $APP.post('/api/login', $HANDLER)
+    - pattern: $APP.post('/api/auth/login', $HANDLER)
+    - pattern: $APP.post('/signin', $HANDLER)
+    - pattern: $APP.post('/api/signin', $HANDLER)
+metadata:
+  cwe: ["CWE-306"]
+  owasp: ["A07:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      app.post('/login', (req, res) => { authenticate(req.body) })
+    - |
+      app.post('/api/login', loginHandler)
+    - |
+      router.post('/signin', signinController)
+  negative:
+    - |
+      app.post('/login', loginLimiter, (req, res) => { authenticate(req.body) })
+    - |
+      app.post('/api/login', rateLimiter, loginHandler)

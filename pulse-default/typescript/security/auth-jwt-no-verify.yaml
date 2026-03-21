@@ -1,0 +1,30 @@
+id: pulse.typescript.security.auth-jwt-no-verify
+language: typescript
+severity: error
+message: |
+  JWT token decoded without signature verification.
+  Using jwt.decode() instead of jwt.verify() reads the token payload without verifying
+  the cryptographic signature, allowing attackers to forge arbitrary tokens.
+  Use jwt.verify(token, secret) to validate the signature before trusting the payload.
+rule:
+  pattern: jwt.decode($$$ARGS)
+metadata:
+  cwe: ["CWE-287"]
+  owasp: ["A02:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      const payload = jwt.decode(token)
+    - |
+      const data = jwt.decode(req.headers.authorization)
+    - |
+      jwt.decode(token, { complete: true })
+  negative:
+    - |
+      const payload = jwt.verify(token, secret)
+    - |
+      jwt.verify(token, publicKey, { algorithms: ['RS256'] })

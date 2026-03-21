@@ -1,0 +1,30 @@
+id: pulse.typescript.security.path-traversal-readfilesync
+language: typescript
+severity: error
+message: |
+  Path traversal via fs.readFileSync().
+  Passing user-controlled data as a file path to fs.readFileSync() allows attackers to read
+  arbitrary files on the server using sequences like "../".
+  Validate and sanitize the path using path.resolve() and verify it stays within the intended directory.
+rule:
+  any:
+    - pattern: fs.readFileSync($PATH)
+    - pattern: fs.readFileSync($PATH, $$$OPTS)
+metadata:
+  cwe: ["CWE-22"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      fs.readFileSync(req.params.filename)
+    - |
+      fs.readFileSync(userPath, "utf8")
+  negative:
+    - |
+      fs.readFileSync("/etc/config.json")
+    - |
+      fs.readFileSync(path.join(__dirname, "data.json"), "utf8")

@@ -1,0 +1,30 @@
+id: pulse.typescript.security.sql-injection-mysql-query
+language: typescript
+severity: error
+message: |
+  SQL injection via template literal in MySQL query.
+  User-controlled data interpolated into a template literal SQL query allows arbitrary SQL execution.
+  Use parameterized queries instead: conn.query("SELECT * FROM users WHERE id = ?", [userId])
+rule:
+  pattern: $CONN.query($QUERY)
+  has:
+    kind: template_string
+    stopBy: end
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      connection.query(`SELECT * FROM users WHERE id = ${userId}`)
+    - |
+      conn.query(`INSERT INTO logs VALUES ('${msg}')`)
+  negative:
+    - |
+      connection.query("SELECT * FROM users WHERE id = ?", [userId])
+    - |
+      connection.query("SELECT * FROM users")

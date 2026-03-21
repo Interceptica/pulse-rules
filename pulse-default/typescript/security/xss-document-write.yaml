@@ -1,0 +1,30 @@
+id: pulse.typescript.security.xss-document-write
+language: typescript
+severity: error
+message: |
+  Cross-site scripting (XSS) via document.write().
+  Passing user-controlled data to document.write() renders it as HTML in the page,
+  allowing script injection.
+  Use safer DOM manipulation methods like textContent or createElement().
+rule:
+  any:
+    - pattern: document.write($INPUT)
+    - pattern: document.writeln($INPUT)
+metadata:
+  cwe: ["CWE-79"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      document.write(userInput)
+    - |
+      document.write("<div>" + data + "</div>")
+    - |
+      document.writeln(`<p>${content}</p>`)
+  negative:
+    - |
+      document.getElementById("out").textContent = data

@@ -1,0 +1,32 @@
+id: pulse.typescript.security.cmd-injection-settimeout-string
+language: typescript
+severity: error
+message: |
+  Code injection via setTimeout() with string argument.
+  When setTimeout() receives a string as its first argument, it evaluates the string as code,
+  similar to eval(). Passing user-controlled data allows arbitrary JavaScript code execution.
+  Pass a function reference instead of a string: setTimeout(() => { ... }, delay)
+rule:
+  pattern: setTimeout($STR, $$$ARGS)
+  has:
+    kind: string
+    field: arguments
+    stopBy: end
+metadata:
+  cwe: ["CWE-95"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      setTimeout("alert('xss')", 1000)
+    - |
+      setTimeout("doSomething()", 500)
+  negative:
+    - |
+      setTimeout(() => alert("safe"), 1000)
+    - |
+      setTimeout(myFunction, 500)

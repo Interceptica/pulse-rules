@@ -1,0 +1,30 @@
+id: pulse.typescript.security.express-cors-wildcard
+language: typescript
+severity: warning
+message: |
+  CORS configuration allows all origins.
+  Using origin: '*' in CORS configuration permits any website to make cross-origin requests
+  to this application, potentially exposing sensitive data.
+  Restrict allowed origins to trusted domains only.
+rule:
+  any:
+    - pattern: "cors({ origin: '*' })"
+    - pattern: "cors({ origin: true })"
+metadata:
+  cwe: ["CWE-942"]
+  owasp: ["A05:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      app.use(cors({ origin: '*' }))
+    - |
+      app.use(cors({ origin: true }))
+  negative:
+    - |
+      app.use(cors({ origin: 'https://example.com' }))
+    - |
+      app.use(cors({ origin: ['https://app.example.com'] }))

@@ -1,0 +1,32 @@
+id: pulse.typescript.security.file-upload-no-validation
+language: typescript
+severity: warning
+message: |
+  Multer file upload configured without a fileFilter.
+  Calling multer() without a fileFilter option accepts any file type, allowing attackers to
+  upload malicious files such as scripts or executables.
+  Add a fileFilter function to validate file types: multer({ fileFilter: (req, file, cb) => { ... } })
+rule:
+  pattern: multer($$$OPTS)
+  not:
+    has:
+      pattern: fileFilter
+      stopBy: end
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      const upload = multer({ dest: 'uploads/' })
+    - |
+      const upload = multer()
+  negative:
+    - |
+      const upload = multer({ dest: 'uploads/', fileFilter: myFilter })
+    - |
+      const upload = multer({ fileFilter: (req, file, cb) => { cb(null, true) } })

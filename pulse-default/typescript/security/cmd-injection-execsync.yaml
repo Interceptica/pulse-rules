@@ -1,0 +1,32 @@
+id: pulse.typescript.security.cmd-injection-execsync
+language: typescript
+severity: error
+message: |
+  Command injection via execSync().
+  Passing user-controlled data to execSync() spawns a shell and allows arbitrary
+  command execution through shell metacharacters.
+  Use execFileSync() or spawnSync() with an argument array instead.
+rule:
+  any:
+    - pattern: execSync($CMD)
+    - pattern: execSync($CMD, $$$OPTS)
+    - pattern: child_process.execSync($CMD)
+    - pattern: child_process.execSync($CMD, $$$OPTS)
+metadata:
+  cwe: ["CWE-78"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      execSync("git clone " + repoUrl)
+    - |
+      execSync(`docker build -t ${tag} .`)
+  negative:
+    - |
+      execFileSync("git", ["clone", repoUrl])
+    - |
+      spawnSync("docker", ["build", "-t", tag, "."])

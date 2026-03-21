@@ -1,0 +1,26 @@
+id: pulse.typescript.security.sql-injection-prisma-raw
+language: typescript
+severity: error
+message: |
+  SQL injection via Prisma $queryRawUnsafe.
+  The $queryRawUnsafe method does not parameterize inputs, allowing SQL injection when
+  user-controlled data is passed.
+  Use $queryRaw with tagged template literals instead, which automatically parameterizes values.
+rule:
+  pattern: $PRISMA.$queryRawUnsafe($INPUT)
+metadata:
+  cwe: ["CWE-89"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      prisma.$queryRawUnsafe(`SELECT * FROM users WHERE id = ${userId}`)
+    - |
+      prisma.$queryRawUnsafe("SELECT * FROM users WHERE id = " + userId)
+  negative:
+    - |
+      prisma.$queryRaw`SELECT * FROM users WHERE id = ${userId}`
