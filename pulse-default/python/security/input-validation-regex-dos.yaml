@@ -1,0 +1,42 @@
+id: pulse.python.security.input-validation-regex-dos
+language: python
+severity: error
+message: |
+  Potential Regular Expression Denial of Service (ReDoS) via user-controlled regex pattern.
+  Passing user-supplied input directly as a regex pattern to re.match(), re.search(),
+  re.findall(), or re.compile() allows an attacker to craft a malicious pattern that causes
+  catastrophic backtracking.
+  Use re2 or a regex timeout, validate the pattern against a safelist, or avoid using user
+  input as regex patterns entirely.
+rule:
+  any:
+    - pattern: re.match($PATTERN, $$$)
+    - pattern: re.search($PATTERN, $$$)
+    - pattern: re.findall($PATTERN, $$$)
+    - pattern: re.compile($PATTERN)
+    - pattern: re.sub($PATTERN, $$$)
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      pattern = request.args.get("pattern")
+      re.match(pattern, data)
+    - |
+      re.compile(user_input)
+    - |
+      re.findall(request.form["regex"], text)
+    - |
+      re.search(query_param, content)
+  negative:
+    - |
+      re.match(r"^\d{3}-\d{4}$", phone)
+    - |
+      re.compile(r"[a-zA-Z]+")
+    - |
+      re.search("fixed_pattern", text)

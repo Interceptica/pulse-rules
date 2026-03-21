@@ -1,0 +1,52 @@
+id: pulse.python.security.cmd-injection-shell-true
+language: python
+severity: error
+message: |
+  Command injection via subprocess with shell=True using string command.
+  Passing a string command to subprocess functions with shell=True enables shell interpretation
+  of special characters, allowing command injection if any part of the string is user-controlled.
+  Use a list of arguments without shell=True: subprocess.run(["cmd", arg1, arg2]).
+rule:
+  any:
+    - pattern: subprocess.run($CMD, $$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.call($CMD, $$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.Popen($CMD, $$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.check_output($CMD, $$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+    - pattern: subprocess.check_call($CMD, $$$ARGS)
+      has:
+        pattern: shell=True
+        stopBy: end
+metadata:
+  cwe: ["CWE-77"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      subprocess.run("echo " + user_input, shell=True)
+    - |
+      subprocess.call(f"ping {host}", shell=True)
+    - |
+      subprocess.Popen(cmd_string, shell=True, stdout=subprocess.PIPE)
+  negative:
+    - |
+      subprocess.run(["echo", user_input])
+    - |
+      subprocess.call(["ping", "-c", "1", host])
+    - |
+      subprocess.run(["ls", "-la"], shell=False)

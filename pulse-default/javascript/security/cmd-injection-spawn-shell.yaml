@@ -1,0 +1,49 @@
+id: pulse.javascript.security.cmd-injection-spawn-shell
+language: javascript
+severity: error
+message: |
+  Command injection via child_process.spawn() with shell option enabled.
+  Using child_process.spawn() or child_process.exec() with shell: true passes the command
+  through a system shell, allowing shell metacharacters to enable command injection.
+  Use spawn() without the shell option and pass arguments as an array. Validate all inputs
+  against an allowlist of permitted commands.
+rule:
+  any:
+    - pattern: spawn($CMD, $$$ARGS)
+      has:
+        pattern: shell: true
+        stopBy: end
+    - pattern: child_process.spawn($CMD, $$$ARGS)
+      has:
+        pattern: shell: true
+        stopBy: end
+    - pattern: execSync($CMD, $$$ARGS)
+      has:
+        pattern: shell: true
+        stopBy: end
+    - pattern: spawnSync($CMD, $$$ARGS)
+      has:
+        pattern: shell: true
+        stopBy: end
+metadata:
+  cwe: ["CWE-77"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      spawn(userCommand, [], { shell: true });
+    - |
+      child_process.spawn("echo " + input, { shell: true });
+    - |
+      spawnSync(cmd, { shell: true, encoding: "utf-8" });
+  negative:
+    - |
+      spawn("git", ["status"]);
+    - |
+      child_process.spawn("ls", ["-la", path]);
+    - |
+      spawn("echo", ["hello"], { shell: false });

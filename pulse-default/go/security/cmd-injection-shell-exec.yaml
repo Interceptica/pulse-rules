@@ -1,0 +1,38 @@
+id: pulse.go.security.cmd-injection-shell-exec
+language: go
+severity: error
+message: |
+  Command injection via exec.Command() with shell invocation.
+  Passing user-controlled input to exec.Command("/bin/sh", "-c", input) or
+  exec.Command("cmd", "/c", input) invokes a system shell that interprets metacharacters,
+  enabling command injection.
+  Avoid invoking a shell. Use exec.Command() with the program and arguments passed separately,
+  and validate all inputs against an allowlist.
+rule:
+  any:
+    - pattern: exec.Command("/bin/sh", "-c", $INPUT)
+    - pattern: exec.Command("/bin/bash", "-c", $INPUT)
+    - pattern: exec.Command("sh", "-c", $INPUT)
+    - pattern: exec.Command("bash", "-c", $INPUT)
+    - pattern: exec.Command("cmd", "/c", $INPUT)
+    - pattern: exec.Command("cmd.exe", "/c", $INPUT)
+metadata:
+  cwe: ["CWE-77"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      exec.Command("/bin/sh", "-c", userInput)
+    - |
+      exec.Command("bash", "-c", "echo " + input)
+    - |
+      exec.Command("cmd", "/c", command)
+  negative:
+    - |
+      exec.Command("git", "status")
+    - |
+      exec.Command("ls", "-la", path)

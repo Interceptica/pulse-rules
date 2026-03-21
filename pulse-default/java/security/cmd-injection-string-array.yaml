@@ -1,0 +1,35 @@
+id: pulse.java.security.cmd-injection-string-array
+language: java
+severity: error
+message: |
+  Command injection via Runtime.exec() with shell invocation through string array.
+  Passing user-controlled input to a shell command via Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", input})
+  allows arbitrary command execution. The shell interprets metacharacters enabling command chaining.
+  Avoid invoking a shell. Use ProcessBuilder with a list of arguments and validate all inputs
+  against an allowlist.
+rule:
+  any:
+    - pattern: Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", $INPUT})
+    - pattern: Runtime.getRuntime().exec(new String[]{"/bin/bash", "-c", $INPUT})
+    - pattern: Runtime.getRuntime().exec(new String[]{"cmd", "/c", $INPUT})
+    - pattern: Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", $INPUT})
+metadata:
+  cwe: ["CWE-77"]
+  owasp: ["A03:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", userInput});
+    - |
+      Runtime.getRuntime().exec(new String[]{"/bin/bash", "-c", command});
+    - |
+      Runtime.getRuntime().exec(new String[]{"cmd", "/c", userCommand});
+  negative:
+    - |
+      Runtime.getRuntime().exec(new String[]{"ls", "-la"});
+    - |
+      Runtime.getRuntime().exec("git status");

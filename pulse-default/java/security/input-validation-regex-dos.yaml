@@ -1,0 +1,38 @@
+id: pulse.java.security.input-validation-regex-dos
+language: java
+severity: error
+message: |
+  Potential Regular Expression Denial of Service (ReDoS) via user-controlled regex pattern.
+  Compiling a user-supplied string as a regex pattern with Pattern.compile() allows an attacker
+  to craft a malicious pattern that causes catastrophic backtracking, leading to denial of service.
+  Validate regex patterns against a safelist, set a match timeout, or avoid using user input as
+  regex patterns.
+rule:
+  any:
+    - pattern: Pattern.compile($INPUT)
+    - pattern: Pattern.compile($INPUT, $FLAGS)
+    - pattern: $STR.matches($INPUT)
+    - pattern: $STR.split($INPUT)
+    - pattern: $STR.replaceAll($INPUT, $$$)
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      Pattern pattern = Pattern.compile(userInput);
+    - |
+      Pattern.compile(request.getParameter("regex"), Pattern.CASE_INSENSITIVE);
+    - |
+      input.matches(dynamicPattern);
+  negative:
+    - |
+      Pattern.compile("^[a-zA-Z0-9]+$");
+    - |
+      Pattern.compile("\\d{3}-\\d{4}");
+    - |
+      "test".matches("[a-z]+");

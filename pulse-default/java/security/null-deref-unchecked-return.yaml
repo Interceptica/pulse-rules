@@ -1,0 +1,38 @@
+id: pulse.java.security.null-deref-unchecked-return
+language: java
+severity: warning
+message: |
+  Potential null pointer dereference from unchecked method chain.
+  Calling a method on the return value of get() or similar methods that may return null without
+  a null check can cause a NullPointerException at runtime.
+  Check for null before calling methods on the return value, or use Optional to handle the
+  absence of a value safely.
+rule:
+  any:
+    - pattern: $MAP.get($KEY).$METHOD($$$)
+    - pattern: $MAP.remove($KEY).$METHOD($$$)
+    - pattern: $OBJ.find($$$).$METHOD($$$)
+    - pattern: $OBJ.findFirst().$METHOD($$$)
+metadata:
+  cwe: ["CWE-476"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      String name = map.get(key).toString();
+    - |
+      int length = userMap.get(userId).getName().length();
+    - |
+      cache.remove(key).process();
+  negative:
+    - |
+      Object val = map.get(key);
+      if (val != null) { val.toString(); }
+    - |
+      map.getOrDefault(key, "default").toString();
+    - |
+      Optional.ofNullable(map.get(key)).ifPresent(v -> v.process());

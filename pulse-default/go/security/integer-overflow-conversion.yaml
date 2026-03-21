@@ -1,0 +1,40 @@
+id: pulse.go.security.integer-overflow-conversion
+language: go
+severity: warning
+message: |
+  Potential integer overflow from unsafe integer type conversion.
+  Converting a larger integer type to a smaller one (e.g., int64 to int32, or int to int32)
+  without bounds checking can silently truncate the value, leading to incorrect calculations
+  or security vulnerabilities such as undersized allocations.
+  Check that the value is within the target type's range before converting, or use
+  math.MinInt32/math.MaxInt32 constants for bounds checking.
+rule:
+  any:
+    - pattern: int32($VAR)
+    - pattern: int16($VAR)
+    - pattern: int8($VAR)
+    - pattern: uint8($VAR)
+    - pattern: uint16($VAR)
+    - pattern: uint32($VAR)
+metadata:
+  cwe: ["CWE-190"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      small := int32(bigValue)
+    - |
+      port := uint16(userInput)
+    - |
+      idx := int8(index)
+  negative:
+    - |
+      if val >= math.MinInt32 && val <= math.MaxInt32 {
+          small := int32(val)
+      }
+    - |
+      int32(42)

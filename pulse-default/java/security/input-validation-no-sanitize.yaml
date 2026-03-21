@@ -1,0 +1,32 @@
+id: pulse.java.security.input-validation-no-sanitize
+language: java
+severity: warning
+message: |
+  Unsanitized use of request.getParameter() in business logic.
+  Using request.getParameter() directly without input validation or sanitization may allow
+  injection attacks or unexpected behavior.
+  Always validate and sanitize request parameters before using them in business logic. Use
+  allowlists, type checks, and length limits.
+rule:
+  any:
+    - pattern: $REQ.getParameter($PARAM)
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      String name = request.getParameter("name");
+      processOrder(name);
+    - |
+      int id = Integer.parseInt(request.getParameter("id"));
+    - |
+      String action = request.getParameter("action");
+  negative:
+    - |
+      String name = StringUtils.trimToEmpty(request.getParameter("name"));
+      if (isValid(name)) { processOrder(name); }

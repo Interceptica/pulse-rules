@@ -1,0 +1,35 @@
+id: pulse.java.security.integer-overflow-cast
+language: java
+severity: warning
+message: |
+  Potential integer overflow from unsafe narrowing cast.
+  Casting a larger integer type to a smaller one (e.g., long to int, int to short) without
+  bounds checking can silently truncate the value, leading to unexpected behavior, incorrect
+  calculations, or security vulnerabilities.
+  Check that the value is within the target type's range before casting, or use
+  Math.toIntExact() for long-to-int conversions.
+rule:
+  any:
+    - pattern: (int) $LONG_VAL
+    - pattern: (short) $INT_VAL
+    - pattern: (byte) $INT_VAL
+metadata:
+  cwe: ["CWE-190"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      int result = (int) longValue;
+    - |
+      short small = (short) intValue;
+    - |
+      byte b = (byte) userInput;
+  negative:
+    - |
+      int result = Math.toIntExact(longValue);
+    - |
+      int safe = (int) 42L;

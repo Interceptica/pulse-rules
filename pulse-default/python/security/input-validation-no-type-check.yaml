@@ -1,0 +1,41 @@
+id: pulse.python.security.input-validation-no-type-check
+language: python
+severity: warning
+message: |
+  Improper input validation when converting request data to numeric types.
+  Using int() or float() directly on request.args.get() or request.form.get() without
+  try/except can cause unhandled ValueError exceptions and may allow unexpected input.
+  Wrap the conversion in a try/except block or use a validation library to sanitize input first.
+rule:
+  any:
+    - pattern: int(request.args.get($$$))
+    - pattern: int(request.form.get($$$))
+    - pattern: float(request.args.get($$$))
+    - pattern: float(request.form.get($$$))
+    - pattern: int(request.args[$$$])
+    - pattern: int(request.form[$$$])
+    - pattern: float(request.args[$$$])
+    - pattern: float(request.form[$$$])
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      page = int(request.args.get("page"))
+    - |
+      price = float(request.form.get("price"))
+    - |
+      count = int(request.args["count"])
+  negative:
+    - |
+      try:
+          page = int(request.args.get("page", 1))
+      except ValueError:
+          page = 1
+    - |
+      page = int("42")

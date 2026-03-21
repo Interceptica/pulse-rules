@@ -1,0 +1,35 @@
+id: pulse.javascript.security.input-validation-regex-dos
+language: javascript
+severity: error
+message: |
+  Potential Regular Expression Denial of Service (ReDoS) via user-controlled regex pattern.
+  Creating a RegExp from user-supplied input with new RegExp() allows an attacker to craft
+  a malicious pattern that causes catastrophic backtracking, leading to denial of service.
+  Use a safe regex library like re2, validate patterns against a safelist, or avoid using
+  user input as regex patterns.
+rule:
+  any:
+    - pattern: new RegExp($INPUT)
+    - pattern: new RegExp($INPUT, $FLAGS)
+metadata:
+  cwe: ["CWE-20"]
+  owasp: ["A03:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      const regex = new RegExp(req.query.pattern);
+    - |
+      new RegExp(userInput, "gi");
+    - |
+      const re = new RegExp(searchTerm);
+  negative:
+    - |
+      const regex = new RegExp("^[a-zA-Z]+$");
+    - |
+      const re = /^\d{3}-\d{4}$/;
+    - |
+      new RegExp("fixed-pattern", "i");

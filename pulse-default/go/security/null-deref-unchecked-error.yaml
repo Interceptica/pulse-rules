@@ -1,0 +1,37 @@
+id: pulse.go.security.null-deref-unchecked-error
+language: go
+severity: warning
+message: |
+  Potential nil pointer dereference from discarded error return value.
+  Assigning the error return to the blank identifier (_) and then using the value without
+  checking for errors can lead to a nil pointer dereference or use of a zero/invalid value.
+  Always check the error return before using the value: if err != nil { return err }.
+rule:
+  any:
+    - pattern: $VAL, _ := $FUNC($$$)
+    - pattern: $VAL, _ = $FUNC($$$)
+metadata:
+  cwe: ["CWE-476"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      conn, _ := net.Dial("tcp", addr)
+      conn.Write(data)
+    - |
+      file, _ := os.Open(path)
+      file.Read(buf)
+    - |
+      result, _ = json.Marshal(data)
+  negative:
+    - |
+      conn, err := net.Dial("tcp", addr)
+      if err != nil { return err }
+      conn.Write(data)
+    - |
+      file, err := os.Open(path)
+      if err != nil { log.Fatal(err) }

@@ -1,0 +1,37 @@
+id: pulse.java.security.integer-overflow-multiply
+language: java
+severity: warning
+message: |
+  Potential integer overflow in multiplication used for allocation or sizing.
+  Multiplying integers without overflow checking can wrap around, leading to undersized buffer
+  allocations, incorrect array sizes, or other security-sensitive miscalculations.
+  Use Math.multiplyExact() to detect overflow, or use long arithmetic for intermediate results.
+rule:
+  any:
+    - pattern: new byte[$A * $B]
+    - pattern: new int[$A * $B]
+    - pattern: new char[$A * $B]
+    - pattern: new long[$A * $B]
+    - pattern: new Object[$A * $B]
+    - pattern: ByteBuffer.allocate($A * $B)
+    - pattern: new ArrayList<>($A * $B)
+metadata:
+  cwe: ["CWE-190"]
+  owasp: ["A03:2021"]
+  pulse.confidence: LOW
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      byte[] buffer = new byte[width * height];
+    - |
+      int[] data = new int[rows * cols];
+    - |
+      ByteBuffer buf = ByteBuffer.allocate(count * size);
+  negative:
+    - |
+      byte[] buffer = new byte[Math.multiplyExact(width, height)];
+    - |
+      byte[] buffer = new byte[1024];
