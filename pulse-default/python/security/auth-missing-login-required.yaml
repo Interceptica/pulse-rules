@@ -1,0 +1,38 @@
+id: pulse.python.security.auth-missing-login-required
+language: python
+severity: warning
+message: |
+  Django view function accesses request.user without @login_required decorator.
+  A view that references request.user without enforcing authentication via @login_required
+  may allow unauthenticated users to access sensitive operations.
+  Add the @login_required decorator or use LoginRequiredMixin for class-based views.
+rule:
+  pattern: |
+    def $FUNC(request, $$$PARAMS):
+        $$$BODY
+  has:
+    pattern: request.user
+    stopBy: end
+  not:
+    precedes:
+      pattern: "@login_required"
+      stopBy: end
+metadata:
+  cwe: ["CWE-862"]
+  owasp: ["A01:2021"]
+  pulse.confidence: LOW
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      def profile_view(request):
+          user = request.user
+          return render(request, 'profile.html', {'user': user})
+  negative:
+    - |
+      @login_required
+      def profile_view(request):
+          user = request.user
+          return render(request, 'profile.html', {'user': user})

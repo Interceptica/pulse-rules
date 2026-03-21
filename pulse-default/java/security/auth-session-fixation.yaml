@@ -1,0 +1,33 @@
+id: pulse.java.security.auth-session-fixation
+language: java
+severity: warning
+message: |
+  Session not invalidated before authentication.
+  Failing to call session.invalidate() before establishing an authenticated session allows
+  an attacker to fixate a session ID and hijack the user's authenticated session.
+  Call request.getSession().invalidate() before creating a new authenticated session.
+rule:
+  any:
+    - pattern: $SESSION.setAttribute("authenticated", $$$ARGS)
+    - pattern: $SESSION.setAttribute("user", $$$ARGS)
+    - pattern: SecurityContextHolder.getContext().setAuthentication($AUTH)
+metadata:
+  cwe: ["CWE-384"]
+  owasp: ["A07:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      session.setAttribute("authenticated", true);
+    - |
+      session.setAttribute("user", userObj);
+    - |
+      SecurityContextHolder.getContext().setAuthentication(auth);
+  negative:
+    - |
+      session.invalidate();
+      HttpSession newSession = request.getSession(true);
+      newSession.setAttribute("user", userObj);

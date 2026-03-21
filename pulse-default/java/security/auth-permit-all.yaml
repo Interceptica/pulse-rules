@@ -1,0 +1,30 @@
+id: pulse.java.security.auth-permit-all
+language: java
+severity: error
+message: |
+  Sensitive endpoint configured with permitAll() in Spring Security.
+  Using permitAll() on admin or otherwise sensitive URL patterns removes authentication
+  requirements, allowing any user to access protected resources.
+  Restrict sensitive endpoints with appropriate access rules such as hasRole('ADMIN').
+rule:
+  any:
+    - pattern: .antMatchers($PATH).permitAll()
+    - pattern: .requestMatchers($PATH).permitAll()
+metadata:
+  cwe: ["CWE-863"]
+  owasp: ["A01:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      http.authorizeRequests().antMatchers("/admin/**").permitAll();
+    - |
+      http.authorizeHttpRequests().requestMatchers("/api/internal/**").permitAll();
+  negative:
+    - |
+      http.authorizeRequests().antMatchers("/public/**").permitAll();
+    - |
+      http.authorizeRequests().antMatchers("/admin/**").hasRole("ADMIN");

@@ -1,0 +1,32 @@
+id: pulse.javascript.security.auth-bcrypt-low-rounds
+language: javascript
+severity: warning
+message: |
+  bcrypt configured with a low cost factor.
+  Using a salt round value below 10 makes bcrypt hashes faster to compute, reducing the
+  protection against brute-force attacks.
+  Use a cost factor of at least 10 (preferably 12 or higher): bcrypt.hash(password, 12)
+rule:
+  any:
+    - pattern: bcrypt.hash($PASS, $ROUNDS)
+    - pattern: bcrypt.hashSync($PASS, $ROUNDS)
+metadata:
+  cwe: ["CWE-287"]
+  owasp: ["A02:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: MEDIUM
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      const hash = await bcrypt.hash(password, 4)
+    - |
+      const hash = bcrypt.hashSync(password, 6)
+    - |
+      bcrypt.hash(password, 8)
+  negative:
+    - |
+      const hash = await bcrypt.hash(password, 12)
+    - |
+      const hash = bcrypt.hashSync(password, 10)

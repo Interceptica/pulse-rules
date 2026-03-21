@@ -1,0 +1,64 @@
+id: pulse.java.security.auth-missing-preauthorize
+language: java
+severity: warning
+message: |
+  Spring controller method lacks authorization annotation.
+  A controller method mapped to an HTTP endpoint without @PreAuthorize, @Secured, or
+  @RolesAllowed may be accessible to unauthorized users.
+  Add an appropriate authorization annotation such as @PreAuthorize("hasRole('ADMIN')").
+rule:
+  any:
+    - pattern: |
+        @RequestMapping($$$ARGS)
+        public $RET $METHOD($$$PARAMS) { $$$BODY }
+      not:
+        has:
+          any:
+            - pattern: "@PreAuthorize($$$)"
+            - pattern: "@Secured($$$)"
+            - pattern: "@RolesAllowed($$$)"
+          stopBy: end
+    - pattern: |
+        @GetMapping($$$ARGS)
+        public $RET $METHOD($$$PARAMS) { $$$BODY }
+      not:
+        has:
+          any:
+            - pattern: "@PreAuthorize($$$)"
+            - pattern: "@Secured($$$)"
+            - pattern: "@RolesAllowed($$$)"
+          stopBy: end
+    - pattern: |
+        @PostMapping($$$ARGS)
+        public $RET $METHOD($$$PARAMS) { $$$BODY }
+      not:
+        has:
+          any:
+            - pattern: "@PreAuthorize($$$)"
+            - pattern: "@Secured($$$)"
+            - pattern: "@RolesAllowed($$$)"
+          stopBy: end
+metadata:
+  cwe: ["CWE-862"]
+  owasp: ["A01:2021"]
+  pulse.confidence: LOW
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      @GetMapping("/admin/users")
+      public List<User> getUsers() { return userService.findAll(); }
+    - |
+      @PostMapping("/admin/delete")
+      public void deleteUser(@RequestParam Long id) { userService.delete(id); }
+  negative:
+    - |
+      @PreAuthorize("hasRole('ADMIN')")
+      @GetMapping("/admin/users")
+      public List<User> getUsers() { return userService.findAll(); }
+    - |
+      @Secured("ROLE_ADMIN")
+      @PostMapping("/admin/delete")
+      public void deleteUser(@RequestParam Long id) { userService.delete(id); }

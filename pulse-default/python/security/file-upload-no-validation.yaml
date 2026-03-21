@@ -1,0 +1,36 @@
+id: pulse.python.security.file-upload-no-validation
+language: python
+severity: error
+message: |
+  File upload without extension or content-type validation.
+  Accepting uploaded files from Flask request.files or Django request.FILES without checking
+  the file extension or content type allows attackers to upload malicious files (e.g., web shells).
+  Validate the file extension against an allowlist and verify the content type before saving.
+rule:
+  any:
+    - pattern: request.files[$KEY]
+    - pattern: request.files.get($KEY)
+    - pattern: request.FILES[$KEY]
+    - pattern: request.FILES.get($KEY)
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      uploaded = request.files['document']
+    - |
+      file = request.files.get('avatar')
+    - |
+      uploaded = request.FILES['photo']
+    - |
+      file = request.FILES.get('attachment')
+  negative:
+    - |
+      data = request.form['name']
+    - |
+      value = request.GET.get('page')

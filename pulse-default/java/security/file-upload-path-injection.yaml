@@ -1,0 +1,31 @@
+id: pulse.java.security.file-upload-path-injection
+language: java
+severity: error
+message: |
+  Uploaded file stored using user-controlled path.
+  Calling transferTo() with a dynamically constructed File path allows an attacker to control
+  where the file is written on the filesystem, potentially overwriting critical files.
+  Validate and sanitize the destination path, and ensure it resolves within the intended upload directory.
+rule:
+  any:
+    - pattern: $FILE.transferTo(new File($PATH))
+    - pattern: $FILE.transferTo(new File($DIR, $NAME))
+    - pattern: $FILE.transferTo($DEST)
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: MEDIUM
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      file.transferTo(new File(uploadPath + "/" + filename));
+    - |
+      multipartFile.transferTo(new File(destDir, originalName));
+    - |
+      file.transferTo(dest);
+  negative:
+    - |
+      file.getBytes();

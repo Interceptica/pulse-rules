@@ -1,0 +1,29 @@
+id: pulse.java.security.file-upload-no-validation
+language: java
+severity: error
+message: |
+  Uploaded file used without content type validation.
+  Using MultipartFile.getOriginalFilename() directly in file operations without validating
+  the content type or extension allows attackers to upload malicious files.
+  Validate the content type with getContentType() and check the extension against an allowlist.
+rule:
+  any:
+    - pattern: $FILE.getOriginalFilename()
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      String name = file.getOriginalFilename();
+    - |
+      Path dest = Paths.get(uploadDir, file.getOriginalFilename());
+    - |
+      new File(uploadDir + "/" + multipartFile.getOriginalFilename());
+  negative:
+    - |
+      String contentType = file.getContentType();

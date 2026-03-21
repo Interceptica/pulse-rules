@@ -1,0 +1,32 @@
+id: pulse.python.security.file-upload-dangerous-extension
+language: python
+severity: warning
+message: |
+  Uploaded file saved with original filename without sanitization.
+  Using the original filename from an uploaded file directly in file.save() or as a path
+  can allow path traversal or storage of files with dangerous extensions (e.g., .php, .exe).
+  Use werkzeug.utils.secure_filename() or validate and sanitize the filename before saving.
+rule:
+  any:
+    - pattern: $FILE.save($PATH)
+    - pattern: $FILE.filename
+metadata:
+  cwe: ["CWE-434"]
+  owasp: ["A04:2021"]
+  pulse.confidence: MEDIUM
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: true
+test:
+  positive:
+    - |
+      uploaded_file.save(os.path.join(upload_dir, uploaded_file.filename))
+    - |
+      name = uploaded_file.filename
+    - |
+      f.save("/uploads/" + f.filename)
+  negative:
+    - |
+      filename = secure_filename(uploaded_file.filename)
+    - |
+      f.save(os.path.join(upload_dir, secure_filename(f.filename)))

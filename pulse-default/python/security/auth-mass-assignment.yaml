@@ -1,0 +1,42 @@
+id: pulse.python.security.auth-mass-assignment
+language: python
+severity: error
+message: |
+  Django ModelForm with unrestricted fields allows mass assignment.
+  Using fields = '__all__' or omitting the fields attribute in a ModelForm Meta class exposes
+  all model fields to user input, potentially allowing modification of privileged fields.
+  Explicitly list only the fields that should be user-editable in the fields attribute.
+rule:
+  any:
+    - pattern: fields = '__all__'
+    - pattern: fields = "__all__"
+metadata:
+  cwe: ["CWE-863"]
+  owasp: ["A01:2021"]
+  pulse.confidence: HIGH
+  pulse.impact: HIGH
+  pulse.fix_complexity: LOW
+  pulse.reachability_relevant: false
+test:
+  positive:
+    - |
+      class UserForm(ModelForm):
+          class Meta:
+              model = User
+              fields = '__all__'
+    - |
+      class ProfileForm(ModelForm):
+          class Meta:
+              model = Profile
+              fields = "__all__"
+  negative:
+    - |
+      class UserForm(ModelForm):
+          class Meta:
+              model = User
+              fields = ['username', 'email']
+    - |
+      class UserForm(ModelForm):
+          class Meta:
+              model = User
+              fields = ('username', 'email')
