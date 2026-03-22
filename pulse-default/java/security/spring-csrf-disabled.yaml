@@ -9,6 +9,10 @@ rule:
   any:
     - pattern: $HTTP.csrf().disable()
     - pattern: $HTTP.csrf($CUSTOMIZER).disable()
+    - pattern: $HTTP.csrf($CUSTOMIZER)
+      has:
+        pattern: $X.disable()
+        stopBy: end
 metadata:
   cwe: ["CWE-352"]
   owasp: ["A01:2021"]
